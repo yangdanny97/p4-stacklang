@@ -1,0 +1,4 @@
+./send.py 10.0.1.11 "Hello World"
+
+ip source and dest
+
