@@ -29,22 +29,20 @@ def addForwardingRule(switch, dst_ip_addr, dst_port):
     bmv2_switch.WriteTableEntry(table_entry)
     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
 
-def addAclRule(switch, ip_addr, priority):
-    # Helper function to install acl rules
+def addSelfForwardingRule(switch, dst_ip_addr, dst_port):
+    # Helper function to install forwarding rules
     table_entry = p4info_helper.buildTableEntry(
-        table_name="MyIngress.acl",
-        priority=priority,
+        table_name="MyIngress.ipv4_self_forward",
         match_fields={
-            "hdr.ipv4.dstAddr": (ip_addr, 0xFFFFFFFF)
-            #TODO
-            #optionally, add other fields here
+            "hdr.ipv4.dstAddr": (dst_ip_addr, 32)
         },
-        action_name="MyIngress.drop",
-        action_params={})
+        action_name="MyIngress.ipv4_forward",
+        action_params={
+            "port": dst_port,
+        })
     bmv2_switch = switches[switch]
-    print table_entry
     bmv2_switch.WriteTableEntry(table_entry)
-    print "Installed acl rule on %s for %s with priority %d" % (switch, ip_addr, priority)
+    print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
     
 def main(p4info_file_path, bmv2_file_path, topo_file_path):
     # Instantiate a P4Runtime helper from the p4info file
@@ -71,21 +69,11 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
         # TODO
         # invoke helpers to add forwarding and acl rules here
         addForwardingRule("s1","10.0.2.22",2)
-        addForwardingRule("s2","10.0.2.22",1)
-        addForwardingRule("s3","10.0.2.22",3)
-
         addForwardingRule("s1","10.0.1.11",1)
-        addForwardingRule("s2","10.0.1.11",2)
-        addForwardingRule("s3","10.0.1.11",2)
 
-        addForwardingRule("s1","10.0.3.33",3)
-        addForwardingRule("s2","10.0.3.33",3)
-        addForwardingRule("s3","10.0.3.33",1)
-
-        # addAclRule("s1","10.0.3.33",1)
-        # addAclRule("s2","10.0.3.33",1)
-        # addAclRule("s3","10.0.3.33",1)
-        
+        addSelfForwardingRule("s1","10.0.2.22",3)
+        addSelfForwardingRule("s1","10.0.1.11",3)
+    
     except KeyboardInterrupt:
         print " Shutting down."
     except grpc.RpcError as e:
