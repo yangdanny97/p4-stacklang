@@ -32,7 +32,7 @@ def addForwardingRule(switch, dst_ip_addr, dst_port):
 def addSelfForwardingRule(switch, dst_ip_addr, dst_port):
     # Helper function to install forwarding rules
     table_entry = p4info_helper.buildTableEntry(
-        table_name="MyIngress.ipv4_self_forward",
+        table_name="MyIngress.ipv4_self_fwd",
         match_fields={
             "hdr.ipv4.dstAddr": (dst_ip_addr, 32)
         },
