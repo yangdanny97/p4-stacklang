@@ -33,18 +33,11 @@ class IPOption_MRI(IPOption):
                                    [],
                                    IntField("", 0),
                                    length_from=lambda pkt:pkt.count*4) ]
-def handle_pkt(pkt):
-    if TCP in pkt and pkt[TCP].dport == 1234:
-        print "got a packet"
-        pkt.show2()
-    #    hexdump(pkt)
-        sys.stdout.flush()
-    elif UDP in pkt and pkt[UDP].dport == 1234:
-        print "got a packet"
-        pkt.show2()
-    #    hexdump(pkt)
-        sys.stdout.flush()        
 
+def handle_pkt(pkt):
+    pkt.show2()
+    hexdump(pkt)
+    sys.stdout.flush()        
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))
