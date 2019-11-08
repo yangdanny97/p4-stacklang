@@ -2,8 +2,8 @@
 ***********************  INSTRUCTIONS  ***********************************
 *************************************************************************/
 
-const bit<32> STACK_SIZE = 128;
-const bit<32> MAX_INSTRS = 128;
+const bit<32> STACK_SIZE = 127
+const bit<32> MAX_INSTRS = 127
 
 const bit<8> i_load = 0x00
 const bit<8> i_store = 0x01
@@ -29,9 +29,11 @@ const bit<8> i_rot = 0x14
 const bit<8> i_jump = 0x15
 const bit<8> i_cjump = 0x16
 const bit<8> i_done = 0x17
+const bit<8> i_error = 0x18
 
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F
+const bit<8> MAX_STEPS = 250
 
 header instr_t {
     bit<8> opcode;
@@ -45,9 +47,11 @@ header stack_t {
 header pdata_t {
     bit<8> PC; // program counter
     bit<8> SP; // stack pointer
+    bit <8> steps;
     bit<1> done; // flag set when execution ends
     bit<1> error; // flag set if there is an error
     bit<6> padding;
+    bit<32> result;
 }
 
 /*************************************************************************
