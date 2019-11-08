@@ -66,8 +66,6 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
             print "Installed P4 Program using SetForwardingPipelineConfig on %s" % bmv2_switch.name
             switches[switch] = bmv2_switch
             
-        # TODO
-        # invoke helpers to add forwarding and acl rules here
         addForwardingRule("s1","10.0.2.22",2)
         addForwardingRule("s1","10.0.1.11",1)
 

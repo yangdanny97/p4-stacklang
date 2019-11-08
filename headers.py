@@ -283,4 +283,14 @@ def DONE():
 def ERROR():
     return Instruction(opcode = i_error, arg = 0)
 
-# TODO bindings and putting a packet together
+# building a packet by putting the headers in the right order
+def build_packet(pkt, instrs):
+    pkt /= Pdata()
+    assert len(instrs) < MAX_INSTRS
+    for insn in instrs:
+        pkt /= insn
+    pkt /= Stack()
+    return pkt
+
+bind_layers(IP, Pdata, proto=PROTOCOL_NUM)
+sys.setrecursionlimit(30000)
