@@ -45,14 +45,14 @@ class Pdata(Packet):
         BitField('done', 0, 1),
         BitField('error', 0, 1),
         BitField('padding', 0, 6),
-        BitField('result', 0, 32),
+        IntField('result', 0),
     ]
 
 class Instruction(Packet):
     name = 'Instruction'
     fields_desc = [
         BitField('opcode', 0, 8),
-        BitField('arg', 0, 32),
+        IntField('arg', 0),
     ]
 
 class Stack(Packet):

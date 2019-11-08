@@ -322,7 +322,7 @@ control MyIngress(inout headers hdr,
     
     instr_t curr_instr;
 
-    action read_stack(out bit<32> value, in bit<8> offset) {
+    action read_stack(out int<32> value, in bit<8> offset) {
         if (offset == 8w0) { value = hdr.stack[0].value; }
         else if (offset == 8w1) { value = hdr.stack[1].value; }
         else if (offset == 8w2) { value = hdr.stack[2].value; }
@@ -582,7 +582,6 @@ control MyIngress(inout headers hdr,
         else if (offset == 8w125) { hdr.stack[125].value = value; }
         else if (offset == 8w126) { hdr.stack[126].value = value; }
         else if (offset == 8w127) { hdr.stack[127].value = value; }
-        el
     }
 
     action read_current_instr() {
@@ -721,35 +720,282 @@ control MyIngress(inout headers hdr,
     }
 
     action apply_instr() {
-        if (curr_instr.opcode == i_load) { load.apply(); }
-        else if (curr_instr.opcode == i_store) { store.apply(); }
-        else if (curr_instr.opcode == i_push) { push.apply(); }
-        else if (curr_instr.opcode == i_drop) { drop.apply(); }
-        else if (curr_instr.opcode == i_add) { add.apply(); }
-        else if (curr_instr.opcode == i_mul) { mul.apply(); }
-        else if (curr_instr.opcode == i_sub) { sub.apply(); }
-        else if (curr_instr.opcode == i_neg) { neg.apply(); }
-        else if (curr_instr.opcode == i_reset) { reset.apply(); }
-        else if (curr_instr.opcode == i_and) { and.apply(); }
-        else if (curr_instr.opcode == i_or) { or.apply(); }
-        else if (curr_instr.opcode == i_gt) { gt.apply(); }
-        else if (curr_instr.opcode == i_lt) { lt.apply(); }
-        else if (curr_instr.opcode == i_lte) { lte.apply(); }
-        else if (curr_instr.opcode == i_gte) { gte.apply(); }
-        else if (curr_instr.opcode == i_eq) { eq.apply(); }
-        else if (curr_instr.opcode == i_neq) { neq.apply(); }
-        else if (curr_instr.opcode == i_dup) { dup.apply(); }
-        else if (curr_instr.opcode == i_swap) { swap.apply(); }
-        else if (curr_instr.opcode == i_over) { over.apply(); }
-        else if (curr_instr.opcode == i_rot) { rot.apply(); }
-        else if (curr_instr.opcode == i_jump) { jump.apply(); }
-        else if (curr_instr.opcode == i_cjump) { cjump.apply(); }
-        else if (curr_instr.opcode == i_done) { done.apply(); }
-        else if (curr_instr.opcode == i_error) { error.apply(); }
-        else if (curr_instr.opcode == i_nop) { nop.apply(); }
+        if (curr_instr.opcode == i_load) { instr_load(); }
+        else if (curr_instr.opcode == i_store) { instr_store(); }
+        else if (curr_instr.opcode == i_push) { instr_push(); }
+        else if (curr_instr.opcode == i_drop) { instr_drop(); }
+        else if (curr_instr.opcode == i_add) { instr_add(); }
+        else if (curr_instr.opcode == i_mul) { instr_mul(); }
+        else if (curr_instr.opcode == i_sub) { instr_sub(); }
+        else if (curr_instr.opcode == i_neg) { instr_neg(); }
+        else if (curr_instr.opcode == i_reset) { instr_reset(); }
+        else if (curr_instr.opcode == i_and) { instr_and(); }
+        else if (curr_instr.opcode == i_or) { instr_or(); }
+        else if (curr_instr.opcode == i_gt) { instr_gt(); }
+        else if (curr_instr.opcode == i_lt) { instr_lt(); }
+        else if (curr_instr.opcode == i_lte) { instr_lte(); }
+        else if (curr_instr.opcode == i_gte) { instr_gte(); }
+        else if (curr_instr.opcode == i_eq) { instr_eq(); }
+        else if (curr_instr.opcode == i_neq) { instr_neq(); }
+        else if (curr_instr.opcode == i_dup) { instr_dup(); }
+        else if (curr_instr.opcode == i_swap) { instr_swap(); }
+        else if (curr_instr.opcode == i_over) { instr_over(); }
+        else if (curr_instr.opcode == i_rot) { instr_rot(); }
+        else if (curr_instr.opcode == i_jump) { instr_jump(); }
+        else if (curr_instr.opcode == i_cjump) { instr_cjump(); }
+        else if (curr_instr.opcode == i_done) { instr_done(); }
+        else if (curr_instr.opcode == i_error) { instr_error(); }
+        else if (curr_instr.opcode == i_nop) { instr_nop(); }
     }
 
-    // TODO instruction actions
+    action instr_load() {
+        bit<8> offset = (bit<8>) curr_instr.arg;
+        read_stack(curr_instr.arg, offset);
+        instr_push();
+    }
+
+    action instr_store() {
+        int<32> top;
+        read_stack(top, hdr.pdata.SP - 8w1);
+        bit<8> offset = (bit<8>) curr_instr.arg;
+        read_stack(curr_instr.arg, offset);
+    }
+
+    action instr_push() {
+        write_stack(hdr.pdata.SP, curr_instr.arg);
+        hdr.pdata.SP = hdr.pdata.SP + 8w1;
+    }
+
+    action instr_drop() {
+        hdr.pdata.SP = hdr.pdata.SP - 8w1;
+    }
+
+    action instr_add() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        curr_instr.arg = l + r;
+        instr_push();
+    }
+
+    action instr_mul() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        curr_instr.arg = l * r;
+        instr_push();
+    }
+
+    action instr_sub() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        curr_instr.arg = l - r;
+        instr_push();
+    }
+
+    action instr_neg() {
+        int<32> top;
+        read_stack(top, hdr.pdata.SP - 8w1);
+        instr_drop();
+        curr_instr.arg = -top;
+        instr_push();
+    }
+
+    action instr_reset() {
+        hdr.pdata.SP = 8w0;
+    }
+
+    action instr_and() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l > 0 && r > 0) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_or() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l > 0 || r > 0) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_gt() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l > r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_lt() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l < r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_gte() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l >= r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_lte() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l <= r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_eq() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l == r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_neq() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        instr_drop();
+        instr_drop();
+        if (l != r) {
+            curr_instr.arg = 32w1;
+        } else {
+            curr_instr.arg = 32w0
+        }
+        instr_push();
+    }
+
+    action instr_dup() {
+        int<32> top;
+        read_stack(top, hdr.pdata.SP - 8w1);
+        curr_instr.arg = top;
+        instr_push();
+    }
+
+    action instr_swap() {
+        int<32> l;
+        int<32> r;
+        read_stack(l, hdr.pdata.SP - 8w1);
+        read_stack(r, hdr.pdata.SP - 8w2);
+        write_stack(hdr.pdata.SP - 8w2, l);
+        write_stack(hdr.pdata.SP - 8w1, r);
+    }
+
+    action instr_over() {
+        int<32> second;
+        read_stack(second, hdr.pdata.SP - 8w2);
+        curr_instr.arg = second;
+        instr_push();
+    }
+
+    action instr_rot() {
+        int<32> a;
+        int<32> b;
+        int<32> c;
+        read_stack(c, hdr.pdata.SP - 8w1);
+        read_stack(b, hdr.pdata.SP - 8w2);
+        read_stack(a, hdr.pdata.SP - 8w3);
+        write_stack(hdr.pdata.SP - 8w1, b);
+        write_stack(hdr.pdata.SP - 8w2, a);
+        write_stack(hdr.pdata.SP - 8w3, c);
+    }
+
+    action instr_jump() {
+        bit<8> pc = (bit<8>) curr_instr.arg;
+        hdr.pdata.PC = pc;
+    }
+
+    action instr_cjump() {
+        bit<8> pc = (bit<8>) curr_instr.arg;
+        int<32> top;
+        read_stack(top, hdr.pdata.SP - 8w1);
+        if (top > 0) {
+            hdr.pdata.PC = pc;
+        } else {
+            hdr.pdata.PC = hdr.pdata.PC;
+        }
+    }
+
+    action instr_done() {
+        hdr.pdata.done = 1w1;
+        read_stack(hdr.pdata.result, hdr.pdata.SP - 8w1);
+    }
+
+    action instr_error() {
+        hdr.pdata.error = 1w1;
+    }
+
+    action instr_nop() { }
 
     action drop() {
         mark_to_drop(standard_metadata);
@@ -790,8 +1036,8 @@ control MyIngress(inout headers hdr,
         if (hdr.pdata.done == 1w1 || hdr.pdata.error == 1w1) {
             ipv4_lpm.apply();
         } else {
-            read_current_instr.apply();
-            apply_instr.apply();
+            read_current_instr();
+            apply_instr();
             ipv4_self_fwd.apply();
         }
     }

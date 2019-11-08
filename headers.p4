@@ -37,21 +37,21 @@ const bit<8> i_nop = 0x19
 
 header instr_t {
     bit<8> opcode;
-    bit<32> arg;
+    int<32> arg;
 }
 
 header stack_t {
-    bit<32> contents
+    int<32> contents
 }
 
 header pdata_t {
     bit<8> PC; // program counter
-    bit<8> SP; // stack pointer
+    bit<8> SP; // stack pointer to next EMPTY slot
     bit <8> steps;
     bit<1> done; // flag set when execution ends
     bit<1> error; // flag set if there is an error
     bit<6> padding;
-    bit<32> result;
+    int<32> result;
 }
 
 /*************************************************************************
