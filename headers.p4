@@ -2,6 +2,9 @@
 ***********************  INSTRUCTIONS  ***********************************
 *************************************************************************/
 
+// use an unassigned protocol number
+const bit<8> PROTOCOL_NUM = 0x8F
+const bit<8> MAX_STEPS = 250
 const bit<32> STACK_SIZE = 127
 const bit<32> MAX_INSTRS = 127
 
@@ -30,10 +33,7 @@ const bit<8> i_jump = 0x15
 const bit<8> i_cjump = 0x16
 const bit<8> i_done = 0x17
 const bit<8> i_error = 0x18
-
-// use an unassigned protocol number
-const bit<8> PROTOCOL_NUM = 0x8F
-const bit<8> MAX_STEPS = 250
+const bit<8> i_nop = 0x19
 
 header instr_t {
     bit<8> opcode;

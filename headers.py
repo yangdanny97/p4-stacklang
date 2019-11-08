@@ -29,6 +29,7 @@ i_jump = 0x15
 i_cjump = 0x16
 i_done = 0x17
 i_error = 0x18
+i_nop = 0x19
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -279,9 +280,14 @@ def CJUMP(pc):
 def DONE():
     return Instruction(opcode = i_done, arg = 0)
 
+# no-op
+def NOP():
+    return Instruction(opcode = i_nop, arg = 0)
+
 # mark error
 def ERROR():
     return Instruction(opcode = i_error, arg = 0)
+
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs):
@@ -289,6 +295,11 @@ def build_packet(pkt, instrs):
     assert len(instrs) < MAX_INSTRS
     for insn in instrs:
         pkt /= insn
+    # pad all programs to 128 instrs
+    padding = MAX_INSTRS - len(instrs)
+    while padding > 0:
+        pkt /= ERROR()
+        padding -=1
     pkt /= Stack()
     return pkt
 
