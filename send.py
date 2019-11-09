@@ -4,6 +4,7 @@ import sys
 import socket
 import random
 import struct
+from headers import *
 
 from scapy.all import sendp, send, get_if_list, get_if_hwaddr
 from scapy.all import Packet
@@ -22,21 +23,52 @@ def get_if():
         exit(1)
     return iface
 
+def test_basic():
+    return [
+        PUSH(1),
+        PUSH(2),
+        DONE()
+    ]
+
+def test_error():
+    return [
+        PUSH(1),
+        ERROR(),
+        PUSH(2),
+    ]
+
+def test_swap():
+    return [
+        PUSH(1),
+        PUSH(2),
+        SWAP(),
+        DONE()
+    ]
+
+def test_add():
+    return [
+        PUSH(1),
+        PUSH(2),
+        ADD(),
+        DONE()
+    ]
+
+def get_program():
+    return []
+
 
 def main():
-
-    # if len(sys.argv)<3:
-    #     print 'pass 2 arguments: <destination> "<message>"'
-    #     exit(1)
 
     addr = socket.gethostbyname(sys.argv[1])
     iface = get_if()
 
     print "sending on interface %s to %s" % (iface, str(addr))
     pkt = Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff')
-    # TODO custom packet constructors
-    # pkt = pkt /IP(dst=addr) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
-    # pkt = pkt /IP(dst=addr, chksum=0xffff) / TCP(dport=1234, sport=random.randint(49152,65535)) / sys.argv[2]
+
+    pkt = pkt /IP(dst=addr)
+    instrs = get_program()
+    build_packet(pkt, instrs)
+
     pkt.show2()
     sendp(pkt, iface=iface, verbose=False)
 
