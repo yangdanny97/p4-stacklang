@@ -752,6 +752,7 @@ control MyIngress(inout headers hdr,
         bit<8> offset = (bit<8>) curr_instr.arg;
         read_stack(curr_instr.arg, offset);
         instr_push();
+        increment_pc();
     }
 
     action instr_store() {
@@ -759,15 +760,18 @@ control MyIngress(inout headers hdr,
         read_stack(top, hdr.pdata.SP - 8w1);
         bit<8> offset = (bit<8>) curr_instr.arg;
         read_stack(curr_instr.arg, offset);
+        increment_pc();
     }
 
     action instr_push() {
         write_stack(hdr.pdata.SP, curr_instr.arg);
         hdr.pdata.SP = hdr.pdata.SP + 8w1;
+        increment_pc();
     }
 
     action instr_drop() {
         hdr.pdata.SP = hdr.pdata.SP - 8w1;
+        increment_pc();
     }
 
     action instr_add() {
@@ -779,6 +783,7 @@ control MyIngress(inout headers hdr,
         instr_drop();
         curr_instr.arg = l + r;
         instr_push();
+        increment_pc();
     }
 
     action instr_mul() {
@@ -790,6 +795,7 @@ control MyIngress(inout headers hdr,
         instr_drop();
         curr_instr.arg = l * r;
         instr_push();
+        increment_pc();
     }
 
     action instr_sub() {
@@ -801,6 +807,7 @@ control MyIngress(inout headers hdr,
         instr_drop();
         curr_instr.arg = l - r;
         instr_push();
+        increment_pc();
     }
 
     action instr_neg() {
@@ -809,10 +816,12 @@ control MyIngress(inout headers hdr,
         instr_drop();
         curr_instr.arg = -top;
         instr_push();
+        increment_pc();
     }
 
     action instr_reset() {
         hdr.pdata.SP = 8w0;
+        increment_pc();
     }
 
     action instr_and() {
@@ -828,6 +837,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_or() {
@@ -843,6 +853,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_gt() {
@@ -858,6 +869,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_lt() {
@@ -873,6 +885,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_gte() {
@@ -888,6 +901,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_lte() {
@@ -903,6 +917,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_eq() {
@@ -918,6 +933,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_neq() {
@@ -933,6 +949,7 @@ control MyIngress(inout headers hdr,
             curr_instr.arg = 32w0
         }
         instr_push();
+        increment_pc();
     }
 
     action instr_dup() {
@@ -940,6 +957,7 @@ control MyIngress(inout headers hdr,
         read_stack(top, hdr.pdata.SP - 8w1);
         curr_instr.arg = top;
         instr_push();
+        increment_pc();
     }
 
     action instr_swap() {
@@ -949,6 +967,7 @@ control MyIngress(inout headers hdr,
         read_stack(r, hdr.pdata.SP - 8w2);
         write_stack(hdr.pdata.SP - 8w2, l);
         write_stack(hdr.pdata.SP - 8w1, r);
+        increment_pc();
     }
 
     action instr_over() {
@@ -956,6 +975,7 @@ control MyIngress(inout headers hdr,
         read_stack(second, hdr.pdata.SP - 8w2);
         curr_instr.arg = second;
         instr_push();
+        increment_pc();
     }
 
     action instr_rot() {
@@ -968,6 +988,7 @@ control MyIngress(inout headers hdr,
         write_stack(hdr.pdata.SP - 8w1, b);
         write_stack(hdr.pdata.SP - 8w2, a);
         write_stack(hdr.pdata.SP - 8w3, c);
+        increment_pc();
     }
 
     action instr_jump() {
@@ -995,7 +1016,9 @@ control MyIngress(inout headers hdr,
         hdr.pdata.error = 1w1;
     }
 
-    action instr_nop() { }
+    action instr_nop() {
+        increment_pc();
+     }
 
     action drop() {
         mark_to_drop(standard_metadata);
