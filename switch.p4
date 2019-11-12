@@ -3,8 +3,6 @@
 #include <v1model.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
-const bit<32> H1_ADDR = 0x0A00010B;
-const bit<32> H2_ADDR = 0x0A000216;
 
 /*************************************************************************
 ***********************  INSTRUCTIONS  ***********************************
@@ -14,7 +12,7 @@ const bit<32> H2_ADDR = 0x0A000216;
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<8> MAX_STEPS = 250;
 const bit<32> STACK_SIZE = 128;
-const bit<32> MAX_INSTRS = 128;
+const bit<8> MAX_INSTRS = 128;
 
 const bit<8> i_load = 0x00;
 const bit<8> i_store = 0x01;
@@ -139,10 +137,10 @@ parser MyParser(packet_in packet,
     state parse_pdata {
         packet.extract(hdr.pdata);
         instrs_to_parse = hdr.pdata.PC;
-        transition parse_instructions;
+        transition parse_all_instructions;
     }
 
-    parse_all_instructions {
+    state parse_all_instructions {
         transition select(total_instrs) {
             0: parse_stack;
             default: parse_instruction;
@@ -159,7 +157,7 @@ parser MyParser(packet_in packet,
 
     state next_instruction {
         packet.extract(hdr.instructions.next);
-        instrs_to_current = instrs_to_current - 8w1;
+        instrs_to_parse = instrs_to_parse - 8w1;
         transition parse_all_instructions;
     }
 
