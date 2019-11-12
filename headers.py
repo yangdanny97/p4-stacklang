@@ -33,8 +33,8 @@ i_nop = 0x19
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
-STACK_SIZE = 127
-MAX_INSTRS = 127
+STACK_SIZE = 128
+MAX_INSTRS = 128
 
 class Pdata(Packet):
     name = 'pdata'
@@ -42,8 +42,8 @@ class Pdata(Packet):
         BitField('pc', 0, 8),
         BitField('sp', 0, 8),
         BitField('steps', 0, 8),
-        BitField('done', 0, 1),
-        BitField('error', 0, 1),
+        BitField('done_flg', 0, 1),
+        BitField('err_flg', 0, 1),
         BitField('padding', 0, 6),
         IntField('result', 0),
     ]

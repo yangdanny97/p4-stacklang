@@ -54,7 +54,7 @@ def test_add():
     ]
 
 def get_program():
-    return []
+    return test_basic()
 
 
 def main():
