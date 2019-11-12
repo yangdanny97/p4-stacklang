@@ -17,19 +17,11 @@ gte -
 eq - 
 neq - 
 
-
 dup - duplicate top of stack ( a -- a a )
 swap - swap top 2 things in stack ( a b -- b a )
 over - copy 2nd from top onto top ( a b -- a b a )
 rot - ( a b c -- b c a )
 jump i - set PC to i
-pjump i - consume top of stack, set PC to i if value == 1
-done
-
-stack
-stackptr
-ins
-insptr
-error
-done
-
+cjump i - consume top of stack, set PC to i if value == 1
+done - mark done flag
+error - mark error flag
