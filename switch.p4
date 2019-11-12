@@ -13,8 +13,8 @@ const bit<32> H2_ADDR = 0x0A000216;
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<8> MAX_STEPS = 250;
-const bit<32> STACK_SIZE = 32;
-const bit<32> MAX_INSTRS = 32;
+const bit<32> STACK_SIZE = 128;
+const bit<32> MAX_INSTRS = 128;
 
 const bit<8> i_load = 0x00;
 const bit<8> i_store = 0x01;
@@ -92,7 +92,7 @@ header ipv4_t {
 }
 
 struct metadata {
-    /* empty */
+    instr_t current_instr;
 }
 
 struct headers {
@@ -111,8 +111,12 @@ parser MyParser(packet_in packet,
                 out headers hdr,
                 inout metadata meta,
                 inout standard_metadata_t standard_metadata) {
+    bit<8> instrs_to_parse;
+    bit<8> total_instrs;
 
     state start {
+        instrs_to_parse = 8w0;
+        total_instrs = MAX_INSTRS;
         transition parse_ethernet;
     }
 
@@ -134,138 +138,35 @@ parser MyParser(packet_in packet,
 
     state parse_pdata {
         packet.extract(hdr.pdata);
+        instrs_to_parse = hdr.pdata.PC;
         transition parse_instructions;
     }
 
-    state parse_instructions {
+    parse_all_instructions {
+        transition select(total_instrs) {
+            0: parse_stack;
+            default: parse_instruction;
+        }
+    }
+
+    state parse_instruction {
+        total_instrs = total_instrs - 8w1;
+        transition select(instrs_to_parse) {
+            0: parse_current_instruction;
+            default: next_instruction;
+        }
+    }
+
+    state next_instruction {
         packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-        packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-//      packet.extract(hdr.instructions.next);
-        transition parse_stack;
+        instrs_to_current = instrs_to_current - 8w1;
+        transition parse_all_instructions;
+    }
+
+    state parse_current_instruction {
+        meta.current_instr.setValid();
+        meta.current_instr = packet.lookahead<instr_t>();
+        transition next_instruction;
     }
 
     state parse_stack {
@@ -301,101 +202,101 @@ parser MyParser(packet_in packet,
         packet.extract(hdr.stack.next);
         packet.extract(hdr.stack.next);
         packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
-//      packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
+        packet.extract(hdr.stack.next);
         transition accept;
     }
 }
@@ -417,402 +318,280 @@ control MyIngress(inout headers hdr,
                   inout standard_metadata_t standard_metadata) {
     
     instr_t curr_instr;
+    register<int<32>>(STACK_SIZE) stack;
+
+    action parse_stack() {
+        stack.write(0, hdr.stack[0].value);
+        stack.write(1, hdr.stack[1].value);
+        stack.write(2, hdr.stack[2].value);
+        stack.write(3, hdr.stack[3].value);
+        stack.write(4, hdr.stack[4].value);
+        stack.write(5, hdr.stack[5].value);
+        stack.write(6, hdr.stack[6].value);
+        stack.write(7, hdr.stack[7].value);
+        stack.write(8, hdr.stack[8].value);
+        stack.write(9, hdr.stack[9].value);
+        stack.write(10, hdr.stack[10].value);
+        stack.write(11, hdr.stack[11].value);
+        stack.write(12, hdr.stack[12].value);
+        stack.write(13, hdr.stack[13].value);
+        stack.write(14, hdr.stack[14].value);
+        stack.write(15, hdr.stack[15].value);
+        stack.write(16, hdr.stack[16].value);
+        stack.write(17, hdr.stack[17].value);
+        stack.write(18, hdr.stack[18].value);
+        stack.write(19, hdr.stack[19].value);
+        stack.write(20, hdr.stack[20].value);
+        stack.write(21, hdr.stack[21].value);
+        stack.write(22, hdr.stack[22].value);
+        stack.write(23, hdr.stack[23].value);
+        stack.write(24, hdr.stack[24].value);
+        stack.write(25, hdr.stack[25].value);
+        stack.write(26, hdr.stack[26].value);
+        stack.write(27, hdr.stack[27].value);
+        stack.write(28, hdr.stack[28].value);
+        stack.write(29, hdr.stack[29].value);
+        stack.write(30, hdr.stack[30].value);
+        stack.write(31, hdr.stack[31].value);
+        stack.write(32, hdr.stack[32].value);
+        stack.write(33, hdr.stack[33].value);
+        stack.write(34, hdr.stack[34].value);
+        stack.write(35, hdr.stack[35].value);
+        stack.write(36, hdr.stack[36].value);
+        stack.write(37, hdr.stack[37].value);
+        stack.write(38, hdr.stack[38].value);
+        stack.write(39, hdr.stack[39].value);
+        stack.write(40, hdr.stack[40].value);
+        stack.write(41, hdr.stack[41].value);
+        stack.write(42, hdr.stack[42].value);
+        stack.write(43, hdr.stack[43].value);
+        stack.write(44, hdr.stack[44].value);
+        stack.write(45, hdr.stack[45].value);
+        stack.write(46, hdr.stack[46].value);
+        stack.write(47, hdr.stack[47].value);
+        stack.write(48, hdr.stack[48].value);
+        stack.write(49, hdr.stack[49].value);
+        stack.write(50, hdr.stack[50].value);
+        stack.write(51, hdr.stack[51].value);
+        stack.write(52, hdr.stack[52].value);
+        stack.write(53, hdr.stack[53].value);
+        stack.write(54, hdr.stack[54].value);
+        stack.write(55, hdr.stack[55].value);
+        stack.write(56, hdr.stack[56].value);
+        stack.write(57, hdr.stack[57].value);
+        stack.write(58, hdr.stack[58].value);
+        stack.write(59, hdr.stack[59].value);
+        stack.write(60, hdr.stack[60].value);
+        stack.write(61, hdr.stack[61].value);
+        stack.write(62, hdr.stack[62].value);
+        stack.write(63, hdr.stack[63].value);
+        stack.write(64, hdr.stack[64].value);
+        stack.write(65, hdr.stack[65].value);
+        stack.write(66, hdr.stack[66].value);
+        stack.write(67, hdr.stack[67].value);
+        stack.write(68, hdr.stack[68].value);
+        stack.write(69, hdr.stack[69].value);
+        stack.write(70, hdr.stack[70].value);
+        stack.write(71, hdr.stack[71].value);
+        stack.write(72, hdr.stack[72].value);
+        stack.write(73, hdr.stack[73].value);
+        stack.write(74, hdr.stack[74].value);
+        stack.write(75, hdr.stack[75].value);
+        stack.write(76, hdr.stack[76].value);
+        stack.write(77, hdr.stack[77].value);
+        stack.write(78, hdr.stack[78].value);
+        stack.write(79, hdr.stack[79].value);
+        stack.write(80, hdr.stack[80].value);
+        stack.write(81, hdr.stack[81].value);
+        stack.write(82, hdr.stack[82].value);
+        stack.write(83, hdr.stack[83].value);
+        stack.write(84, hdr.stack[84].value);
+        stack.write(85, hdr.stack[85].value);
+        stack.write(86, hdr.stack[86].value);
+        stack.write(87, hdr.stack[87].value);
+        stack.write(88, hdr.stack[88].value);
+        stack.write(89, hdr.stack[89].value);
+        stack.write(90, hdr.stack[90].value);
+        stack.write(91, hdr.stack[91].value);
+        stack.write(92, hdr.stack[92].value);
+        stack.write(93, hdr.stack[93].value);
+        stack.write(94, hdr.stack[94].value);
+        stack.write(95, hdr.stack[95].value);
+        stack.write(96, hdr.stack[96].value);
+        stack.write(97, hdr.stack[97].value);
+        stack.write(98, hdr.stack[98].value);
+        stack.write(99, hdr.stack[99].value);
+        stack.write(100, hdr.stack[100].value);
+        stack.write(101, hdr.stack[101].value);
+        stack.write(102, hdr.stack[102].value);
+        stack.write(103, hdr.stack[103].value);
+        stack.write(104, hdr.stack[104].value);
+        stack.write(105, hdr.stack[105].value);
+        stack.write(106, hdr.stack[106].value);
+        stack.write(107, hdr.stack[107].value);
+        stack.write(108, hdr.stack[108].value);
+        stack.write(109, hdr.stack[109].value);
+        stack.write(110, hdr.stack[110].value);
+        stack.write(111, hdr.stack[111].value);
+        stack.write(112, hdr.stack[112].value);
+        stack.write(113, hdr.stack[113].value);
+        stack.write(114, hdr.stack[114].value);
+        stack.write(115, hdr.stack[115].value);
+        stack.write(116, hdr.stack[116].value);
+        stack.write(117, hdr.stack[117].value);
+        stack.write(118, hdr.stack[118].value);
+        stack.write(119, hdr.stack[119].value);
+        stack.write(120, hdr.stack[120].value);
+        stack.write(121, hdr.stack[121].value);
+        stack.write(122, hdr.stack[122].value);
+        stack.write(123, hdr.stack[123].value);
+        stack.write(124, hdr.stack[124].value);
+        stack.write(125, hdr.stack[125].value);
+        stack.write(126, hdr.stack[126].value);
+        stack.write(127, hdr.stack[127].value);
+    }
+
+    action deparse_stack() {
+        stack.read(hdr.stack[0].value, 0);
+        stack.read(hdr.stack[1].value, 1);
+        stack.read(hdr.stack[2].value, 2);
+        stack.read(hdr.stack[3].value, 3);
+        stack.read(hdr.stack[4].value, 4);
+        stack.read(hdr.stack[5].value, 5);
+        stack.read(hdr.stack[6].value, 6);
+        stack.read(hdr.stack[7].value, 7);
+        stack.read(hdr.stack[8].value, 8);
+        stack.read(hdr.stack[9].value, 9);
+        stack.read(hdr.stack[10].value, 10);
+        stack.read(hdr.stack[11].value, 11);
+        stack.read(hdr.stack[12].value, 12);
+        stack.read(hdr.stack[13].value, 13);
+        stack.read(hdr.stack[14].value, 14);
+        stack.read(hdr.stack[15].value, 15);
+        stack.read(hdr.stack[16].value, 16);
+        stack.read(hdr.stack[17].value, 17);
+        stack.read(hdr.stack[18].value, 18);
+        stack.read(hdr.stack[19].value, 19);
+        stack.read(hdr.stack[20].value, 20);
+        stack.read(hdr.stack[21].value, 21);
+        stack.read(hdr.stack[22].value, 22);
+        stack.read(hdr.stack[23].value, 23);
+        stack.read(hdr.stack[24].value, 24);
+        stack.read(hdr.stack[25].value, 25);
+        stack.read(hdr.stack[26].value, 26);
+        stack.read(hdr.stack[27].value, 27);
+        stack.read(hdr.stack[28].value, 28);
+        stack.read(hdr.stack[29].value, 29);
+        stack.read(hdr.stack[30].value, 30);
+        stack.read(hdr.stack[31].value, 31);
+        stack.read(hdr.stack[32].value, 32);
+        stack.read(hdr.stack[33].value, 33);
+        stack.read(hdr.stack[34].value, 34);
+        stack.read(hdr.stack[35].value, 35);
+        stack.read(hdr.stack[36].value, 36);
+        stack.read(hdr.stack[37].value, 37);
+        stack.read(hdr.stack[38].value, 38);
+        stack.read(hdr.stack[39].value, 39);
+        stack.read(hdr.stack[40].value, 40);
+        stack.read(hdr.stack[41].value, 41);
+        stack.read(hdr.stack[42].value, 42);
+        stack.read(hdr.stack[43].value, 43);
+        stack.read(hdr.stack[44].value, 44);
+        stack.read(hdr.stack[45].value, 45);
+        stack.read(hdr.stack[46].value, 46);
+        stack.read(hdr.stack[47].value, 47);
+        stack.read(hdr.stack[48].value, 48);
+        stack.read(hdr.stack[49].value, 49);
+        stack.read(hdr.stack[50].value, 50);
+        stack.read(hdr.stack[51].value, 51);
+        stack.read(hdr.stack[52].value, 52);
+        stack.read(hdr.stack[53].value, 53);
+        stack.read(hdr.stack[54].value, 54);
+        stack.read(hdr.stack[55].value, 55);
+        stack.read(hdr.stack[56].value, 56);
+        stack.read(hdr.stack[57].value, 57);
+        stack.read(hdr.stack[58].value, 58);
+        stack.read(hdr.stack[59].value, 59);
+        stack.read(hdr.stack[60].value, 60);
+        stack.read(hdr.stack[61].value, 61);
+        stack.read(hdr.stack[62].value, 62);
+        stack.read(hdr.stack[63].value, 63);
+        stack.read(hdr.stack[64].value, 64);
+        stack.read(hdr.stack[65].value, 65);
+        stack.read(hdr.stack[66].value, 66);
+        stack.read(hdr.stack[67].value, 67);
+        stack.read(hdr.stack[68].value, 68);
+        stack.read(hdr.stack[69].value, 69);
+        stack.read(hdr.stack[70].value, 70);
+        stack.read(hdr.stack[71].value, 71);
+        stack.read(hdr.stack[72].value, 72);
+        stack.read(hdr.stack[73].value, 73);
+        stack.read(hdr.stack[74].value, 74);
+        stack.read(hdr.stack[75].value, 75);
+        stack.read(hdr.stack[76].value, 76);
+        stack.read(hdr.stack[77].value, 77);
+        stack.read(hdr.stack[78].value, 78);
+        stack.read(hdr.stack[79].value, 79);
+        stack.read(hdr.stack[80].value, 80);
+        stack.read(hdr.stack[81].value, 81);
+        stack.read(hdr.stack[82].value, 82);
+        stack.read(hdr.stack[83].value, 83);
+        stack.read(hdr.stack[84].value, 84);
+        stack.read(hdr.stack[85].value, 85);
+        stack.read(hdr.stack[86].value, 86);
+        stack.read(hdr.stack[87].value, 87);
+        stack.read(hdr.stack[88].value, 88);
+        stack.read(hdr.stack[89].value, 89);
+        stack.read(hdr.stack[90].value, 90);
+        stack.read(hdr.stack[91].value, 91);
+        stack.read(hdr.stack[92].value, 92);
+        stack.read(hdr.stack[93].value, 93);
+        stack.read(hdr.stack[94].value, 94);
+        stack.read(hdr.stack[95].value, 95);
+        stack.read(hdr.stack[96].value, 96);
+        stack.read(hdr.stack[97].value, 97);
+        stack.read(hdr.stack[98].value, 98);
+        stack.read(hdr.stack[99].value, 99);
+        stack.read(hdr.stack[100].value, 100);
+        stack.read(hdr.stack[101].value, 101);
+        stack.read(hdr.stack[102].value, 102);
+        stack.read(hdr.stack[103].value, 103);
+        stack.read(hdr.stack[104].value, 104);
+        stack.read(hdr.stack[105].value, 105);
+        stack.read(hdr.stack[106].value, 106);
+        stack.read(hdr.stack[107].value, 107);
+        stack.read(hdr.stack[108].value, 108);
+        stack.read(hdr.stack[109].value, 109);
+        stack.read(hdr.stack[110].value, 110);
+        stack.read(hdr.stack[111].value, 111);
+        stack.read(hdr.stack[112].value, 112);
+        stack.read(hdr.stack[113].value, 113);
+        stack.read(hdr.stack[114].value, 114);
+        stack.read(hdr.stack[115].value, 115);
+        stack.read(hdr.stack[116].value, 116);
+        stack.read(hdr.stack[117].value, 117);
+        stack.read(hdr.stack[118].value, 118);
+        stack.read(hdr.stack[119].value, 119);
+        stack.read(hdr.stack[120].value, 120);
+        stack.read(hdr.stack[121].value, 121);
+        stack.read(hdr.stack[122].value, 122);
+        stack.read(hdr.stack[123].value, 123);
+        stack.read(hdr.stack[124].value, 124);
+        stack.read(hdr.stack[125].value, 125);
+        stack.read(hdr.stack[126].value, 126);
+        stack.read(hdr.stack[127].value, 127);
+    }
 
     action read_stack(out int<32> value, in bit<8> offset) {
-        if (offset == 8w0) { value = hdr.stack[0].value; }
-        else if (offset == 8w1) { value = hdr.stack[1].value; }
-        else if (offset == 8w2) { value = hdr.stack[2].value; }
-        else if (offset == 8w3) { value = hdr.stack[3].value; }
-        else if (offset == 8w4) { value = hdr.stack[4].value; }
-        else if (offset == 8w5) { value = hdr.stack[5].value; }
-        else if (offset == 8w6) { value = hdr.stack[6].value; }
-        else if (offset == 8w7) { value = hdr.stack[7].value; }
-        else if (offset == 8w8) { value = hdr.stack[8].value; }
-        else if (offset == 8w9) { value = hdr.stack[9].value; }
-        else if (offset == 8w10) { value = hdr.stack[10].value; }
-        else if (offset == 8w11) { value = hdr.stack[11].value; }
-        else if (offset == 8w12) { value = hdr.stack[12].value; }
-        else if (offset == 8w13) { value = hdr.stack[13].value; }
-        else if (offset == 8w14) { value = hdr.stack[14].value; }
-        else if (offset == 8w15) { value = hdr.stack[15].value; }
-        else if (offset == 8w16) { value = hdr.stack[16].value; }
-        else if (offset == 8w17) { value = hdr.stack[17].value; }
-        else if (offset == 8w18) { value = hdr.stack[18].value; }
-        else if (offset == 8w19) { value = hdr.stack[19].value; }
-        else if (offset == 8w20) { value = hdr.stack[20].value; }
-        else if (offset == 8w21) { value = hdr.stack[21].value; }
-        else if (offset == 8w22) { value = hdr.stack[22].value; }
-        else if (offset == 8w23) { value = hdr.stack[23].value; }
-        else if (offset == 8w24) { value = hdr.stack[24].value; }
-        else if (offset == 8w25) { value = hdr.stack[25].value; }
-        else if (offset == 8w26) { value = hdr.stack[26].value; }
-        else if (offset == 8w27) { value = hdr.stack[27].value; }
-        else if (offset == 8w28) { value = hdr.stack[28].value; }
-        else if (offset == 8w29) { value = hdr.stack[29].value; }
-        else if (offset == 8w30) { value = hdr.stack[30].value; }
-        else if (offset == 8w31) { value = hdr.stack[31].value; }
-        else { value = hdr.stack[31].value; }
-//      else if (offset == 8w32) { value = hdr.stack[32].value; }
-//      else if (offset == 8w33) { value = hdr.stack[33].value; }
-//      else if (offset == 8w34) { value = hdr.stack[34].value; }
-//      else if (offset == 8w35) { value = hdr.stack[35].value; }
-//      else if (offset == 8w36) { value = hdr.stack[36].value; }
-//      else if (offset == 8w37) { value = hdr.stack[37].value; }
-//      else if (offset == 8w38) { value = hdr.stack[38].value; }
-//      else if (offset == 8w39) { value = hdr.stack[39].value; }
-//      else if (offset == 8w40) { value = hdr.stack[40].value; }
-//      else if (offset == 8w41) { value = hdr.stack[41].value; }
-//      else if (offset == 8w42) { value = hdr.stack[42].value; }
-//      else if (offset == 8w43) { value = hdr.stack[43].value; }
-//      else if (offset == 8w44) { value = hdr.stack[44].value; }
-//      else if (offset == 8w45) { value = hdr.stack[45].value; }
-//      else if (offset == 8w46) { value = hdr.stack[46].value; }
-//      else if (offset == 8w47) { value = hdr.stack[47].value; }
-//      else if (offset == 8w48) { value = hdr.stack[48].value; }
-//      else if (offset == 8w49) { value = hdr.stack[49].value; }
-//      else if (offset == 8w50) { value = hdr.stack[50].value; }
-//      else if (offset == 8w51) { value = hdr.stack[51].value; }
-//      else if (offset == 8w52) { value = hdr.stack[52].value; }
-//      else if (offset == 8w53) { value = hdr.stack[53].value; }
-//      else if (offset == 8w54) { value = hdr.stack[54].value; }
-//      else if (offset == 8w55) { value = hdr.stack[55].value; }
-//      else if (offset == 8w56) { value = hdr.stack[56].value; }
-//      else if (offset == 8w57) { value = hdr.stack[57].value; }
-//      else if (offset == 8w58) { value = hdr.stack[58].value; }
-//      else if (offset == 8w59) { value = hdr.stack[59].value; }
-//      else if (offset == 8w60) { value = hdr.stack[60].value; }
-//      else if (offset == 8w61) { value = hdr.stack[61].value; }
-//      else if (offset == 8w62) { value = hdr.stack[62].value; }
-//      else if (offset == 8w63) { value = hdr.stack[63].value; }
-//      else if (offset == 8w64) { value = hdr.stack[64].value; }
-//      else if (offset == 8w65) { value = hdr.stack[65].value; }
-//      else if (offset == 8w66) { value = hdr.stack[66].value; }
-//      else if (offset == 8w67) { value = hdr.stack[67].value; }
-//      else if (offset == 8w68) { value = hdr.stack[68].value; }
-//      else if (offset == 8w69) { value = hdr.stack[69].value; }
-//      else if (offset == 8w70) { value = hdr.stack[70].value; }
-//      else if (offset == 8w71) { value = hdr.stack[71].value; }
-//      else if (offset == 8w72) { value = hdr.stack[72].value; }
-//      else if (offset == 8w73) { value = hdr.stack[73].value; }
-//      else if (offset == 8w74) { value = hdr.stack[74].value; }
-//      else if (offset == 8w75) { value = hdr.stack[75].value; }
-//      else if (offset == 8w76) { value = hdr.stack[76].value; }
-//      else if (offset == 8w77) { value = hdr.stack[77].value; }
-//      else if (offset == 8w78) { value = hdr.stack[78].value; }
-//      else if (offset == 8w79) { value = hdr.stack[79].value; }
-//      else if (offset == 8w80) { value = hdr.stack[80].value; }
-//      else if (offset == 8w81) { value = hdr.stack[81].value; }
-//      else if (offset == 8w82) { value = hdr.stack[82].value; }
-//      else if (offset == 8w83) { value = hdr.stack[83].value; }
-//      else if (offset == 8w84) { value = hdr.stack[84].value; }
-//      else if (offset == 8w85) { value = hdr.stack[85].value; }
-//      else if (offset == 8w86) { value = hdr.stack[86].value; }
-//      else if (offset == 8w87) { value = hdr.stack[87].value; }
-//      else if (offset == 8w88) { value = hdr.stack[88].value; }
-//      else if (offset == 8w89) { value = hdr.stack[89].value; }
-//      else if (offset == 8w90) { value = hdr.stack[90].value; }
-//      else if (offset == 8w91) { value = hdr.stack[91].value; }
-//      else if (offset == 8w92) { value = hdr.stack[92].value; }
-//      else if (offset == 8w93) { value = hdr.stack[93].value; }
-//      else if (offset == 8w94) { value = hdr.stack[94].value; }
-//      else if (offset == 8w95) { value = hdr.stack[95].value; }
-//      else if (offset == 8w96) { value = hdr.stack[96].value; }
-//      else if (offset == 8w97) { value = hdr.stack[97].value; }
-//      else if (offset == 8w98) { value = hdr.stack[98].value; }
-//      else if (offset == 8w99) { value = hdr.stack[99].value; }
-//      else if (offset == 8w100) { value = hdr.stack[100].value; }
-//      else if (offset == 8w101) { value = hdr.stack[101].value; }
-//      else if (offset == 8w102) { value = hdr.stack[102].value; }
-//      else if (offset == 8w103) { value = hdr.stack[103].value; }
-//      else if (offset == 8w104) { value = hdr.stack[104].value; }
-//      else if (offset == 8w105) { value = hdr.stack[105].value; }
-//      else if (offset == 8w106) { value = hdr.stack[106].value; }
-//      else if (offset == 8w107) { value = hdr.stack[107].value; }
-//      else if (offset == 8w108) { value = hdr.stack[108].value; }
-//      else if (offset == 8w109) { value = hdr.stack[109].value; }
-//      else if (offset == 8w110) { value = hdr.stack[110].value; }
-//      else if (offset == 8w111) { value = hdr.stack[111].value; }
-//      else if (offset == 8w112) { value = hdr.stack[112].value; }
-//      else if (offset == 8w113) { value = hdr.stack[113].value; }
-//      else if (offset == 8w114) { value = hdr.stack[114].value; }
-//      else if (offset == 8w115) { value = hdr.stack[115].value; }
-//      else if (offset == 8w116) { value = hdr.stack[116].value; }
-//      else if (offset == 8w117) { value = hdr.stack[117].value; }
-//      else if (offset == 8w118) { value = hdr.stack[118].value; }
-//      else if (offset == 8w119) { value = hdr.stack[119].value; }
-//      else if (offset == 8w120) { value = hdr.stack[120].value; }
-//      else if (offset == 8w121) { value = hdr.stack[121].value; }
-//      else if (offset == 8w122) { value = hdr.stack[122].value; }
-//      else if (offset == 8w123) { value = hdr.stack[123].value; }
-//      else if (offset == 8w124) { value = hdr.stack[124].value; }
-//      else if (offset == 8w125) { value = hdr.stack[125].value; }
-//      else if (offset == 8w126) { value = hdr.stack[126].value; }
-//      else if (offset == 8w127) { value = hdr.stack[127].value; }
-//      else { value = hdr.stack[127].value; }
+        stack.read(value, (bit<32>) offset);
     }
 
     action write_stack(in bit<8> offset, in int<32> value) {
-        if (offset == 8w0) { hdr.stack[0].value = value; }
-        else if (offset == 8w1) { hdr.stack[1].value = value; }
-        else if (offset == 8w2) { hdr.stack[2].value = value; }
-        else if (offset == 8w3) { hdr.stack[3].value = value; }
-        else if (offset == 8w4) { hdr.stack[4].value = value; }
-        else if (offset == 8w5) { hdr.stack[5].value = value; }
-        else if (offset == 8w6) { hdr.stack[6].value = value; }
-        else if (offset == 8w7) { hdr.stack[7].value = value; }
-        else if (offset == 8w8) { hdr.stack[8].value = value; }
-        else if (offset == 8w9) { hdr.stack[9].value = value; }
-        else if (offset == 8w10) { hdr.stack[10].value = value; }
-        else if (offset == 8w11) { hdr.stack[11].value = value; }
-        else if (offset == 8w12) { hdr.stack[12].value = value; }
-        else if (offset == 8w13) { hdr.stack[13].value = value; }
-        else if (offset == 8w14) { hdr.stack[14].value = value; }
-        else if (offset == 8w15) { hdr.stack[15].value = value; }
-        else if (offset == 8w16) { hdr.stack[16].value = value; }
-        else if (offset == 8w17) { hdr.stack[17].value = value; }
-        else if (offset == 8w18) { hdr.stack[18].value = value; }
-        else if (offset == 8w19) { hdr.stack[19].value = value; }
-        else if (offset == 8w20) { hdr.stack[20].value = value; }
-        else if (offset == 8w21) { hdr.stack[21].value = value; }
-        else if (offset == 8w22) { hdr.stack[22].value = value; }
-        else if (offset == 8w23) { hdr.stack[23].value = value; }
-        else if (offset == 8w24) { hdr.stack[24].value = value; }
-        else if (offset == 8w25) { hdr.stack[25].value = value; }
-        else if (offset == 8w26) { hdr.stack[26].value = value; }
-        else if (offset == 8w27) { hdr.stack[27].value = value; }
-        else if (offset == 8w28) { hdr.stack[28].value = value; }
-        else if (offset == 8w29) { hdr.stack[29].value = value; }
-        else if (offset == 8w30) { hdr.stack[30].value = value; }
-        else if (offset == 8w31) { hdr.stack[31].value = value; }
-//      else if (offset == 8w32) { hdr.stack[32].value = value; }
-//      else if (offset == 8w33) { hdr.stack[33].value = value; }
-//      else if (offset == 8w34) { hdr.stack[34].value = value; }
-//      else if (offset == 8w35) { hdr.stack[35].value = value; }
-//      else if (offset == 8w36) { hdr.stack[36].value = value; }
-//      else if (offset == 8w37) { hdr.stack[37].value = value; }
-//      else if (offset == 8w38) { hdr.stack[38].value = value; }
-//      else if (offset == 8w39) { hdr.stack[39].value = value; }
-//      else if (offset == 8w40) { hdr.stack[40].value = value; }
-//      else if (offset == 8w41) { hdr.stack[41].value = value; }
-//      else if (offset == 8w42) { hdr.stack[42].value = value; }
-//      else if (offset == 8w43) { hdr.stack[43].value = value; }
-//      else if (offset == 8w44) { hdr.stack[44].value = value; }
-//      else if (offset == 8w45) { hdr.stack[45].value = value; }
-//      else if (offset == 8w46) { hdr.stack[46].value = value; }
-//      else if (offset == 8w47) { hdr.stack[47].value = value; }
-//      else if (offset == 8w48) { hdr.stack[48].value = value; }
-//      else if (offset == 8w49) { hdr.stack[49].value = value; }
-//      else if (offset == 8w50) { hdr.stack[50].value = value; }
-//      else if (offset == 8w51) { hdr.stack[51].value = value; }
-//      else if (offset == 8w52) { hdr.stack[52].value = value; }
-//      else if (offset == 8w53) { hdr.stack[53].value = value; }
-//      else if (offset == 8w54) { hdr.stack[54].value = value; }
-//      else if (offset == 8w55) { hdr.stack[55].value = value; }
-//      else if (offset == 8w56) { hdr.stack[56].value = value; }
-//      else if (offset == 8w57) { hdr.stack[57].value = value; }
-//      else if (offset == 8w58) { hdr.stack[58].value = value; }
-//      else if (offset == 8w59) { hdr.stack[59].value = value; }
-//      else if (offset == 8w60) { hdr.stack[60].value = value; }
-//      else if (offset == 8w61) { hdr.stack[61].value = value; }
-//      else if (offset == 8w62) { hdr.stack[62].value = value; }
-//      else if (offset == 8w63) { hdr.stack[63].value = value; }
-//      else if (offset == 8w64) { hdr.stack[64].value = value; }
-//      else if (offset == 8w65) { hdr.stack[65].value = value; }
-//      else if (offset == 8w66) { hdr.stack[66].value = value; }
-//      else if (offset == 8w67) { hdr.stack[67].value = value; }
-//      else if (offset == 8w68) { hdr.stack[68].value = value; }
-//      else if (offset == 8w69) { hdr.stack[69].value = value; }
-//      else if (offset == 8w70) { hdr.stack[70].value = value; }
-//      else if (offset == 8w71) { hdr.stack[71].value = value; }
-//      else if (offset == 8w72) { hdr.stack[72].value = value; }
-//      else if (offset == 8w73) { hdr.stack[73].value = value; }
-//      else if (offset == 8w74) { hdr.stack[74].value = value; }
-//      else if (offset == 8w75) { hdr.stack[75].value = value; }
-//      else if (offset == 8w76) { hdr.stack[76].value = value; }
-//      else if (offset == 8w77) { hdr.stack[77].value = value; }
-//      else if (offset == 8w78) { hdr.stack[78].value = value; }
-//      else if (offset == 8w79) { hdr.stack[79].value = value; }
-//      else if (offset == 8w80) { hdr.stack[80].value = value; }
-//      else if (offset == 8w81) { hdr.stack[81].value = value; }
-//      else if (offset == 8w82) { hdr.stack[82].value = value; }
-//      else if (offset == 8w83) { hdr.stack[83].value = value; }
-//      else if (offset == 8w84) { hdr.stack[84].value = value; }
-//      else if (offset == 8w85) { hdr.stack[85].value = value; }
-//      else if (offset == 8w86) { hdr.stack[86].value = value; }
-//      else if (offset == 8w87) { hdr.stack[87].value = value; }
-//      else if (offset == 8w88) { hdr.stack[88].value = value; }
-//      else if (offset == 8w89) { hdr.stack[89].value = value; }
-//      else if (offset == 8w90) { hdr.stack[90].value = value; }
-//      else if (offset == 8w91) { hdr.stack[91].value = value; }
-//      else if (offset == 8w92) { hdr.stack[92].value = value; }
-//      else if (offset == 8w93) { hdr.stack[93].value = value; }
-//      else if (offset == 8w94) { hdr.stack[94].value = value; }
-//      else if (offset == 8w95) { hdr.stack[95].value = value; }
-//      else if (offset == 8w96) { hdr.stack[96].value = value; }
-//      else if (offset == 8w97) { hdr.stack[97].value = value; }
-//      else if (offset == 8w98) { hdr.stack[98].value = value; }
-//      else if (offset == 8w99) { hdr.stack[99].value = value; }
-//      else if (offset == 8w100) { hdr.stack[100].value = value; }
-//      else if (offset == 8w101) { hdr.stack[101].value = value; }
-//      else if (offset == 8w102) { hdr.stack[102].value = value; }
-//      else if (offset == 8w103) { hdr.stack[103].value = value; }
-//      else if (offset == 8w104) { hdr.stack[104].value = value; }
-//      else if (offset == 8w105) { hdr.stack[105].value = value; }
-//      else if (offset == 8w106) { hdr.stack[106].value = value; }
-//      else if (offset == 8w107) { hdr.stack[107].value = value; }
-//      else if (offset == 8w108) { hdr.stack[108].value = value; }
-//      else if (offset == 8w109) { hdr.stack[109].value = value; }
-//      else if (offset == 8w110) { hdr.stack[110].value = value; }
-//      else if (offset == 8w111) { hdr.stack[111].value = value; }
-//      else if (offset == 8w112) { hdr.stack[112].value = value; }
-//      else if (offset == 8w113) { hdr.stack[113].value = value; }
-//      else if (offset == 8w114) { hdr.stack[114].value = value; }
-//      else if (offset == 8w115) { hdr.stack[115].value = value; }
-//      else if (offset == 8w116) { hdr.stack[116].value = value; }
-//      else if (offset == 8w117) { hdr.stack[117].value = value; }
-//      else if (offset == 8w118) { hdr.stack[118].value = value; }
-//      else if (offset == 8w119) { hdr.stack[119].value = value; }
-//      else if (offset == 8w120) { hdr.stack[120].value = value; }
-//      else if (offset == 8w121) { hdr.stack[121].value = value; }
-//      else if (offset == 8w122) { hdr.stack[122].value = value; }
-//      else if (offset == 8w123) { hdr.stack[123].value = value; }
-//      else if (offset == 8w124) { hdr.stack[124].value = value; }
-//      else if (offset == 8w125) { hdr.stack[125].value = value; }
-//      else if (offset == 8w126) { hdr.stack[126].value = value; }
-//      else if (offset == 8w127) { hdr.stack[127].value = value; }
+        stack.write((bit<32>) offset, value);
     }
 
     action read_current_instr() {
-        if (hdr.pdata.PC == 8w0) { curr_instr = hdr.instructions[0]; }
-        else if (hdr.pdata.PC == 8w1) { curr_instr = hdr.instructions[1]; }
-        else if (hdr.pdata.PC == 8w2) { curr_instr = hdr.instructions[2]; }
-        else if (hdr.pdata.PC == 8w3) { curr_instr = hdr.instructions[3]; }
-        else if (hdr.pdata.PC == 8w4) { curr_instr = hdr.instructions[4]; }
-        else if (hdr.pdata.PC == 8w5) { curr_instr = hdr.instructions[5]; }
-        else if (hdr.pdata.PC == 8w6) { curr_instr = hdr.instructions[6]; }
-        else if (hdr.pdata.PC == 8w7) { curr_instr = hdr.instructions[7]; }
-        else if (hdr.pdata.PC == 8w8) { curr_instr = hdr.instructions[8]; }
-        else if (hdr.pdata.PC == 8w9) { curr_instr = hdr.instructions[9]; }
-        else if (hdr.pdata.PC == 8w10) { curr_instr = hdr.instructions[10]; }
-        else if (hdr.pdata.PC == 8w11) { curr_instr = hdr.instructions[11]; }
-        else if (hdr.pdata.PC == 8w12) { curr_instr = hdr.instructions[12]; }
-        else if (hdr.pdata.PC == 8w13) { curr_instr = hdr.instructions[13]; }
-        else if (hdr.pdata.PC == 8w14) { curr_instr = hdr.instructions[14]; }
-        else if (hdr.pdata.PC == 8w15) { curr_instr = hdr.instructions[15]; }
-        else if (hdr.pdata.PC == 8w16) { curr_instr = hdr.instructions[16]; }
-        else if (hdr.pdata.PC == 8w17) { curr_instr = hdr.instructions[17]; }
-        else if (hdr.pdata.PC == 8w18) { curr_instr = hdr.instructions[18]; }
-        else if (hdr.pdata.PC == 8w19) { curr_instr = hdr.instructions[19]; }
-        else if (hdr.pdata.PC == 8w20) { curr_instr = hdr.instructions[20]; }
-        else if (hdr.pdata.PC == 8w21) { curr_instr = hdr.instructions[21]; }
-        else if (hdr.pdata.PC == 8w22) { curr_instr = hdr.instructions[22]; }
-        else if (hdr.pdata.PC == 8w23) { curr_instr = hdr.instructions[23]; }
-        else if (hdr.pdata.PC == 8w24) { curr_instr = hdr.instructions[24]; }
-        else if (hdr.pdata.PC == 8w25) { curr_instr = hdr.instructions[25]; }
-        else if (hdr.pdata.PC == 8w26) { curr_instr = hdr.instructions[26]; }
-        else if (hdr.pdata.PC == 8w27) { curr_instr = hdr.instructions[27]; }
-        else if (hdr.pdata.PC == 8w28) { curr_instr = hdr.instructions[28]; }
-        else if (hdr.pdata.PC == 8w29) { curr_instr = hdr.instructions[29]; }
-        else if (hdr.pdata.PC == 8w30) { curr_instr = hdr.instructions[30]; }
-        else if (hdr.pdata.PC == 8w31) { curr_instr = hdr.instructions[31]; }
-        else {curr_instr = hdr.instructions[32];}
-//      else if (hdr.pdata.PC == 8w32) { curr_instr = hdr.instructions[32]; }
-//      else if (hdr.pdata.PC == 8w33) { curr_instr = hdr.instructions[33]; }
-//      else if (hdr.pdata.PC == 8w34) { curr_instr = hdr.instructions[34]; }
-//      else if (hdr.pdata.PC == 8w35) { curr_instr = hdr.instructions[35]; }
-//      else if (hdr.pdata.PC == 8w36) { curr_instr = hdr.instructions[36]; }
-//      else if (hdr.pdata.PC == 8w37) { curr_instr = hdr.instructions[37]; }
-//      else if (hdr.pdata.PC == 8w38) { curr_instr = hdr.instructions[38]; }
-//      else if (hdr.pdata.PC == 8w39) { curr_instr = hdr.instructions[39]; }
-//      else if (hdr.pdata.PC == 8w40) { curr_instr = hdr.instructions[40]; }
-//      else if (hdr.pdata.PC == 8w41) { curr_instr = hdr.instructions[41]; }
-//      else if (hdr.pdata.PC == 8w42) { curr_instr = hdr.instructions[42]; }
-//      else if (hdr.pdata.PC == 8w43) { curr_instr = hdr.instructions[43]; }
-//      else if (hdr.pdata.PC == 8w44) { curr_instr = hdr.instructions[44]; }
-//      else if (hdr.pdata.PC == 8w45) { curr_instr = hdr.instructions[45]; }
-//      else if (hdr.pdata.PC == 8w46) { curr_instr = hdr.instructions[46]; }
-//      else if (hdr.pdata.PC == 8w47) { curr_instr = hdr.instructions[47]; }
-//      else if (hdr.pdata.PC == 8w48) { curr_instr = hdr.instructions[48]; }
-//      else if (hdr.pdata.PC == 8w49) { curr_instr = hdr.instructions[49]; }
-//      else if (hdr.pdata.PC == 8w50) { curr_instr = hdr.instructions[50]; }
-//      else if (hdr.pdata.PC == 8w51) { curr_instr = hdr.instructions[51]; }
-//      else if (hdr.pdata.PC == 8w52) { curr_instr = hdr.instructions[52]; }
-//      else if (hdr.pdata.PC == 8w53) { curr_instr = hdr.instructions[53]; }
-//      else if (hdr.pdata.PC == 8w54) { curr_instr = hdr.instructions[54]; }
-//      else if (hdr.pdata.PC == 8w55) { curr_instr = hdr.instructions[55]; }
-//      else if (hdr.pdata.PC == 8w56) { curr_instr = hdr.instructions[56]; }
-//      else if (hdr.pdata.PC == 8w57) { curr_instr = hdr.instructions[57]; }
-//      else if (hdr.pdata.PC == 8w58) { curr_instr = hdr.instructions[58]; }
-//      else if (hdr.pdata.PC == 8w59) { curr_instr = hdr.instructions[59]; }
-//      else if (hdr.pdata.PC == 8w60) { curr_instr = hdr.instructions[60]; }
-//      else if (hdr.pdata.PC == 8w61) { curr_instr = hdr.instructions[61]; }
-//      else if (hdr.pdata.PC == 8w62) { curr_instr = hdr.instructions[62]; }
-//      else if (hdr.pdata.PC == 8w63) { curr_instr = hdr.instructions[63]; }
-//      else if (hdr.pdata.PC == 8w64) { curr_instr = hdr.instructions[64]; }
-//      else if (hdr.pdata.PC == 8w65) { curr_instr = hdr.instructions[65]; }
-//      else if (hdr.pdata.PC == 8w66) { curr_instr = hdr.instructions[66]; }
-//      else if (hdr.pdata.PC == 8w67) { curr_instr = hdr.instructions[67]; }
-//      else if (hdr.pdata.PC == 8w68) { curr_instr = hdr.instructions[68]; }
-//      else if (hdr.pdata.PC == 8w69) { curr_instr = hdr.instructions[69]; }
-//      else if (hdr.pdata.PC == 8w70) { curr_instr = hdr.instructions[70]; }
-//      else if (hdr.pdata.PC == 8w71) { curr_instr = hdr.instructions[71]; }
-//      else if (hdr.pdata.PC == 8w72) { curr_instr = hdr.instructions[72]; }
-//      else if (hdr.pdata.PC == 8w73) { curr_instr = hdr.instructions[73]; }
-//      else if (hdr.pdata.PC == 8w74) { curr_instr = hdr.instructions[74]; }
-//      else if (hdr.pdata.PC == 8w75) { curr_instr = hdr.instructions[75]; }
-//      else if (hdr.pdata.PC == 8w76) { curr_instr = hdr.instructions[76]; }
-//      else if (hdr.pdata.PC == 8w77) { curr_instr = hdr.instructions[77]; }
-//      else if (hdr.pdata.PC == 8w78) { curr_instr = hdr.instructions[78]; }
-//      else if (hdr.pdata.PC == 8w79) { curr_instr = hdr.instructions[79]; }
-//      else if (hdr.pdata.PC == 8w80) { curr_instr = hdr.instructions[80]; }
-//      else if (hdr.pdata.PC == 8w81) { curr_instr = hdr.instructions[81]; }
-//      else if (hdr.pdata.PC == 8w82) { curr_instr = hdr.instructions[82]; }
-//      else if (hdr.pdata.PC == 8w83) { curr_instr = hdr.instructions[83]; }
-//      else if (hdr.pdata.PC == 8w84) { curr_instr = hdr.instructions[84]; }
-//      else if (hdr.pdata.PC == 8w85) { curr_instr = hdr.instructions[85]; }
-//      else if (hdr.pdata.PC == 8w86) { curr_instr = hdr.instructions[86]; }
-//      else if (hdr.pdata.PC == 8w87) { curr_instr = hdr.instructions[87]; }
-//      else if (hdr.pdata.PC == 8w88) { curr_instr = hdr.instructions[88]; }
-//      else if (hdr.pdata.PC == 8w89) { curr_instr = hdr.instructions[89]; }
-//      else if (hdr.pdata.PC == 8w90) { curr_instr = hdr.instructions[90]; }
-//      else if (hdr.pdata.PC == 8w91) { curr_instr = hdr.instructions[91]; }
-//      else if (hdr.pdata.PC == 8w92) { curr_instr = hdr.instructions[92]; }
-//      else if (hdr.pdata.PC == 8w93) { curr_instr = hdr.instructions[93]; }
-//      else if (hdr.pdata.PC == 8w94) { curr_instr = hdr.instructions[94]; }
-//      else if (hdr.pdata.PC == 8w95) { curr_instr = hdr.instructions[95]; }
-//      else if (hdr.pdata.PC == 8w96) { curr_instr = hdr.instructions[96]; }
-//      else if (hdr.pdata.PC == 8w97) { curr_instr = hdr.instructions[97]; }
-//      else if (hdr.pdata.PC == 8w98) { curr_instr = hdr.instructions[98]; }
-//      else if (hdr.pdata.PC == 8w99) { curr_instr = hdr.instructions[99]; }
-//      else if (hdr.pdata.PC == 8w100) { curr_instr = hdr.instructions[100]; }
-//      else if (hdr.pdata.PC == 8w101) { curr_instr = hdr.instructions[101]; }
-//      else if (hdr.pdata.PC == 8w102) { curr_instr = hdr.instructions[102]; }
-//      else if (hdr.pdata.PC == 8w103) { curr_instr = hdr.instructions[103]; }
-//      else if (hdr.pdata.PC == 8w104) { curr_instr = hdr.instructions[104]; }
-//      else if (hdr.pdata.PC == 8w105) { curr_instr = hdr.instructions[105]; }
-//      else if (hdr.pdata.PC == 8w106) { curr_instr = hdr.instructions[106]; }
-//      else if (hdr.pdata.PC == 8w107) { curr_instr = hdr.instructions[107]; }
-//      else if (hdr.pdata.PC == 8w108) { curr_instr = hdr.instructions[108]; }
-//      else if (hdr.pdata.PC == 8w109) { curr_instr = hdr.instructions[109]; }
-//      else if (hdr.pdata.PC == 8w110) { curr_instr = hdr.instructions[110]; }
-//      else if (hdr.pdata.PC == 8w111) { curr_instr = hdr.instructions[111]; }
-//      else if (hdr.pdata.PC == 8w112) { curr_instr = hdr.instructions[112]; }
-//      else if (hdr.pdata.PC == 8w113) { curr_instr = hdr.instructions[113]; }
-//      else if (hdr.pdata.PC == 8w114) { curr_instr = hdr.instructions[114]; }
-//      else if (hdr.pdata.PC == 8w115) { curr_instr = hdr.instructions[115]; }
-//      else if (hdr.pdata.PC == 8w116) { curr_instr = hdr.instructions[116]; }
-//      else if (hdr.pdata.PC == 8w117) { curr_instr = hdr.instructions[117]; }
-//      else if (hdr.pdata.PC == 8w118) { curr_instr = hdr.instructions[118]; }
-//      else if (hdr.pdata.PC == 8w119) { curr_instr = hdr.instructions[119]; }
-//      else if (hdr.pdata.PC == 8w120) { curr_instr = hdr.instructions[120]; }
-//      else if (hdr.pdata.PC == 8w121) { curr_instr = hdr.instructions[121]; }
-//      else if (hdr.pdata.PC == 8w122) { curr_instr = hdr.instructions[122]; }
-//      else if (hdr.pdata.PC == 8w123) { curr_instr = hdr.instructions[123]; }
-//      else if (hdr.pdata.PC == 8w124) { curr_instr = hdr.instructions[124]; }
-//      else if (hdr.pdata.PC == 8w125) { curr_instr = hdr.instructions[125]; }
-//      else if (hdr.pdata.PC == 8w126) { curr_instr = hdr.instructions[126]; }
-//      else if (hdr.pdata.PC == 8w127) { curr_instr = hdr.instructions[127]; }
-//      else { curr_instr = hdr.instructions[127]; }
+        curr_instr = meta.current_instr;
     }
 
     action increment_pc() {
@@ -1163,8 +942,10 @@ control MyIngress(inout headers hdr,
         if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1 || hdr.pdata.steps > MAX_STEPS) {
             ipv4_lpm.apply();
         } else {
+            parse_stack();
             read_current_instr();
             apply_instr();
+            deparse_stack();
             increment_steps();
             ipv4_self_fwd.apply();
         }
