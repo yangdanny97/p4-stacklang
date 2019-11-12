@@ -842,20 +842,6 @@ control MyIngress(inout headers hdr,
         increment_pc();
     }
 
-<<<<<<< HEAD
-=======
-    action instr_push() {
-        write_stack(hdr.pdata.SP, curr_instr.arg);
-        hdr.pdata.SP = hdr.pdata.SP + 8w1;
-        increment_pc();
-    }
-
-    action instr_drop() {
-        hdr.pdata.SP = hdr.pdata.SP - 8w1;
-        increment_pc();
-    }
-
->>>>>>> b348c85d1d48960177d47de0b18cefc5ad2bd749
     action instr_add() {
         int<32> l;
         int<32> r;
