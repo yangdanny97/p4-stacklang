@@ -51,9 +51,9 @@ header stack_t {
 }
 
 header pdata_t {
-    bit<8> PC; // program counter
-    bit<8> SP; // stack pointer to next EMPTY slot
-    bit<8> steps;
+    bit<32> PC; // program counter
+    bit<32> SP; // stack pointer to next EMPTY slot
+    bit<32> steps;
     bit<1> done_flg; // flag set when execution ends
     bit<1> err_flg; // flag set if there is an error
     bit<6> padding;
