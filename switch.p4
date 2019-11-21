@@ -112,7 +112,7 @@ parser MyParser(packet_in packet,
     bit<32> instrs_to_parse;
     bit<32> total_instrs;
     bit<32> n = STACK_SIZE;
-    bit<32> n = MAX_INSTRS;
+    bit<32> m = MAX_INSTRS;
 
     state start {
         instrs_to_parse = 32w0;
@@ -319,14 +319,6 @@ control MyIngress(inout headers hdr,
         stack.read(hdr.stack[31].value, 31);
     }
 
-    action read_stack(out int<32> value, in bit<32> offset) {
-        stack.read(value, (bit<32>) offset);
-    }
-
-    action write_stack(in bit<32> offset, in int<32> value) {
-        stack.write(offset, value);
-    }
-
     action read_current_instr() {
         args.read(curr_instr.arg, hdr.pdata.PC);
         opcodes.read(curr_instr.opcode, hdr.pdata.PC);
@@ -342,7 +334,7 @@ control MyIngress(inout headers hdr,
 
 
     action instr_push() {
-        write_stack(hdr.pdata.SP, curr_instr.arg);
+        stack.write(hdr.pdata.SP, curr_instr.arg);
         hdr.pdata.SP = hdr.pdata.SP + 32w1;
     }
 
@@ -352,24 +344,24 @@ control MyIngress(inout headers hdr,
 
     action instr_load() {
         bit<32> offset = (bit<32>) curr_instr.arg;
-        read_stack(curr_instr.arg, offset);
+        stack.read(curr_instr.arg, offset);
         instr_push();
         increment_pc();
     }
 
     action instr_store() {
         int<32> top;
-        read_stack(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.SP - 32w1);
         bit<32> offset = (bit<32>) curr_instr.arg;
-        read_stack(curr_instr.arg, offset);
+        stack.read(curr_instr.arg, offset);
         increment_pc();
     }
 
     action instr_add() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         curr_instr.arg = l + r;
@@ -380,8 +372,8 @@ control MyIngress(inout headers hdr,
     action instr_mul() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         curr_instr.arg = l * r;
@@ -392,8 +384,8 @@ control MyIngress(inout headers hdr,
     action instr_sub() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         curr_instr.arg = l - r;
@@ -403,7 +395,7 @@ control MyIngress(inout headers hdr,
 
     action instr_neg() {
         int<32> top;
-        read_stack(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.SP - 32w1);
         instr_drop();
         curr_instr.arg = -top;
         instr_push();
@@ -418,8 +410,8 @@ control MyIngress(inout headers hdr,
     action instr_and() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l > 0 && r > 0) {
@@ -434,8 +426,8 @@ control MyIngress(inout headers hdr,
     action instr_or() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l > 0 || r > 0) {
@@ -450,8 +442,8 @@ control MyIngress(inout headers hdr,
     action instr_gt() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l > r) {
@@ -466,8 +458,8 @@ control MyIngress(inout headers hdr,
     action instr_lt() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l < r) {
@@ -482,8 +474,8 @@ control MyIngress(inout headers hdr,
     action instr_gte() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l >= r) {
@@ -498,8 +490,8 @@ control MyIngress(inout headers hdr,
     action instr_lte() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l <= r) {
@@ -514,8 +506,8 @@ control MyIngress(inout headers hdr,
     action instr_eq() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l == r) {
@@ -530,8 +522,8 @@ control MyIngress(inout headers hdr,
     action instr_neq() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
         instr_drop();
         instr_drop();
         if (l != r) {
@@ -545,7 +537,7 @@ control MyIngress(inout headers hdr,
 
     action instr_dup() {
         int<32> top;
-        read_stack(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.SP - 32w1);
         curr_instr.arg = top;
         instr_push();
         increment_pc();
@@ -554,16 +546,16 @@ control MyIngress(inout headers hdr,
     action instr_swap() {
         int<32> l;
         int<32> r;
-        read_stack(l, hdr.pdata.SP - 32w1);
-        read_stack(r, hdr.pdata.SP - 32w2);
-        write_stack(hdr.pdata.SP - 32w2, l);
-        write_stack(hdr.pdata.SP - 32w1, r);
+        stack.read(l, hdr.pdata.SP - 32w1);
+        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.write(hdr.pdata.SP - 32w2, l);
+        stack.write(hdr.pdata.SP - 32w1, r);
         increment_pc();
     }
 
     action instr_over() {
         int<32> second;
-        read_stack(second, hdr.pdata.SP - 32w2);
+        stack.read(second, hdr.pdata.SP - 32w2);
         curr_instr.arg = second;
         instr_push();
         increment_pc();
@@ -573,12 +565,12 @@ control MyIngress(inout headers hdr,
         int<32> a;
         int<32> b;
         int<32> c;
-        read_stack(c, hdr.pdata.SP - 32w1);
-        read_stack(b, hdr.pdata.SP - 32w2);
-        read_stack(a, hdr.pdata.SP - 32w3);
-        write_stack(hdr.pdata.SP - 32w1, b);
-        write_stack(hdr.pdata.SP - 32w2, a);
-        write_stack(hdr.pdata.SP - 32w3, c);
+        stack.read(c, hdr.pdata.SP - 32w1);
+        stack.read(b, hdr.pdata.SP - 32w2);
+        stack.read(a, hdr.pdata.SP - 32w3);
+        stack.write(hdr.pdata.SP - 32w1, b);
+        stack.write(hdr.pdata.SP - 32w2, a);
+        stack.write(hdr.pdata.SP - 32w3, c);
         increment_pc();
     }
 
@@ -590,7 +582,7 @@ control MyIngress(inout headers hdr,
     action instr_cjump() {
         bit<32> pc = (bit<32>) curr_instr.arg;
         int<32> top;
-        read_stack(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.SP - 32w1);
         instr_drop();
         if (top > 0) {
             hdr.pdata.PC = pc;
@@ -601,7 +593,7 @@ control MyIngress(inout headers hdr,
 
     action instr_done() {
         hdr.pdata.done_flg = 1w1;
-        read_stack(hdr.pdata.result, hdr.pdata.SP - 32w1);
+        stack.read(hdr.pdata.result, hdr.pdata.SP - 32w1);
     }
 
     action instr_error() {

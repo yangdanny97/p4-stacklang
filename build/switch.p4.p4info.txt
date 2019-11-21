@@ -1,0 +1,157 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 33574068
+    name: "MyIngress.ipv4_lpm"
+    alias: "ipv4_lpm"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dstAddr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16799317
+  }
+  action_refs {
+    id: 16805608
+  }
+  action_refs {
+    id: 16800567
+  }
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33558216
+    name: "MyIngress.ipv4_self_fwd"
+    alias: "ipv4_self_fwd"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dstAddr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16799317
+  }
+  action_refs {
+    id: 16805608
+  }
+  action_refs {
+    id: 16800567
+  }
+  size: 1024
+}
+actions {
+  preamble {
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
+  }
+}
+actions {
+  preamble {
+    id: 16823589
+    name: "MyIngress.parse_stack"
+    alias: "parse_stack"
+  }
+}
+actions {
+  preamble {
+    id: 16797148
+    name: "MyIngress.deparse_stack"
+    alias: "deparse_stack"
+  }
+}
+actions {
+  preamble {
+    id: 16806716
+    name: "MyIngress.read_current_instr"
+    alias: "read_current_instr"
+  }
+}
+actions {
+  preamble {
+    id: 16813444
+    name: "MyIngress.increment_steps"
+    alias: "increment_steps"
+  }
+}
+actions {
+  preamble {
+    id: 16791888
+    name: "MyIngress.apply_instr"
+    alias: "apply_instr"
+  }
+}
+actions {
+  preamble {
+    id: 16805608
+    name: "MyIngress.drop"
+    alias: "drop"
+  }
+}
+actions {
+  preamble {
+    id: 16799317
+    name: "MyIngress.ipv4_forward"
+    alias: "ipv4_forward"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+}
+registers {
+  preamble {
+    id: 369126529
+    name: "MyIngress.stack"
+    alias: "stack"
+  }
+  type_spec {
+    bitstring {
+      int {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 32
+}
+registers {
+  preamble {
+    id: 369121047
+    name: "MyIngress.opcodes"
+    alias: "opcodes"
+  }
+  type_spec {
+    bitstring {
+      bit {
+        bitwidth: 8
+      }
+    }
+  }
+  size: 32
+}
+registers {
+  preamble {
+    id: 369127006
+    name: "MyIngress.args"
+    alias: "args"
+  }
+  type_spec {
+    bitstring {
+      int {
+        bitwidth: 32
+      }
+    }
+  }
+  size: 32
+}
+type_info {
+}

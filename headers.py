@@ -46,8 +46,8 @@ class Pdata(Packet):
         BitField('err_flg', 0, 1),
         BitField('padding', 0, 6),
         IntField('result', 0),
-        BitField('curr_instr_opcode', 0, 8),
-        IntField('curr_instr_arg', 0),
+        # BitField('curr_instr_opcode', 0, 8),
+        # IntField('curr_instr_arg', 0),
     ]
 
 class Instruction(Packet):
