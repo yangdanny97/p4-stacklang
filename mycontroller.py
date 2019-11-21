@@ -79,7 +79,7 @@ def addInstrRule(switch, opcode, action):
     table_entry = p4info_helper.buildTableEntry(
         table_name="MyIngress.instruction_table",
         match_fields={
-            "curr_instr.opcode": opcode
+            "hdr.pdata.curr_instr_opcode": opcode
         },
         action_name=action)
     bmv2_switch = switches[switch]

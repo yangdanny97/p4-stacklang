@@ -53,7 +53,7 @@ def test_add():
     ]
 
 def get_program():
-    return test_basic()
+    return test_add()
 
 
 def main():

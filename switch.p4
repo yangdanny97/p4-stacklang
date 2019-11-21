@@ -51,13 +51,15 @@ header stack_t {
 }
 
 header pdata_t {
-    bit<32> PC; // program counter
-    bit<32> SP; // stack pointer to next EMPTY slot
+    bit<32> pc; // program counter
+    bit<32> sp; // stack pointer to next EMPTY slot
     bit<32> steps;
     bit<1> done_flg; // flag set when execution ends
     bit<1> err_flg; // flag set if there is an error
     bit<6> padding;
     int<32> result;
+    bit<8> curr_instr_opcode;
+    int<32> curr_instr_arg;
 }
 
 /*************************************************************************
@@ -109,14 +111,11 @@ parser MyParser(packet_in packet,
                 out headers hdr,
                 inout metadata meta,
                 inout standard_metadata_t standard_metadata) {
-    bit<32> instrs_to_parse;
-    bit<32> total_instrs;
+    
     bit<32> n = STACK_SIZE;
     bit<32> m = MAX_INSTRS;
 
     state start {
-        instrs_to_parse = 32w0;
-        total_instrs = MAX_INSTRS;
         transition parse_ethernet;
     }
 
@@ -138,7 +137,6 @@ parser MyParser(packet_in packet,
 
     state parse_pdata {
         packet.extract(hdr.pdata);
-        instrs_to_parse = hdr.pdata.PC;
         transition parse_instructions;
     }
 
@@ -177,7 +175,6 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
     
-    instr_t curr_instr;
     register<int<32>>(STACK_SIZE) stack;
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
@@ -249,7 +246,7 @@ control MyIngress(inout headers hdr,
         args.write(31, hdr.instructions[31].arg);
     }
 
-        action parse_stack() {
+    action parse_stack() {
         stack.write(0, hdr.stack[0].value);
         stack.write(1, hdr.stack[1].value);
         stack.write(2, hdr.stack[2].value);
@@ -320,12 +317,12 @@ control MyIngress(inout headers hdr,
     }
 
     action read_current_instr() {
-        opcodes.read(curr_instr.opcode, hdr.pdata.PC);
-        args.read(curr_instr.arg, hdr.pdata.PC);
+        opcodes.read(hdr.pdata.curr_instr_opcode, hdr.pdata.pc);
+        args.read(hdr.pdata.curr_instr_arg, hdr.pdata.pc);
     }
 
     action increment_pc() {
-        hdr.pdata.PC = hdr.pdata.PC + 32w1;
+        hdr.pdata.pc = hdr.pdata.pc + 32w1;
     }
 
     action increment_steps() {
@@ -333,19 +330,18 @@ control MyIngress(inout headers hdr,
     }
 
     action ipush() {
-        stack.write(hdr.pdata.SP, curr_instr.arg);
-        hdr.pdata.SP = hdr.pdata.SP + 32w1;
+        stack.write(hdr.pdata.sp, hdr.pdata.curr_instr_arg);
+        hdr.pdata.sp = hdr.pdata.sp + 32w1;
     }
 
     action idrop() {
-        hdr.pdata.SP = hdr.pdata.SP - 32w1;
+        hdr.pdata.sp = hdr.pdata.sp - 32w1;
     }
 
 
     action instr_push() {
         ipush();
         increment_pc();
-        hdr.pdata.result = curr_instr.arg;
     }
 
     action instr_drop() {
@@ -354,28 +350,28 @@ control MyIngress(inout headers hdr,
     }
 
     action instr_load() {
-        bit<32> offset = (bit<32>) curr_instr.arg;
-        stack.read(curr_instr.arg, offset);
+        bit<32> offset = (bit<32>) hdr.pdata.curr_instr_arg;
+        stack.read(hdr.pdata.curr_instr_arg, offset);
         ipush();
         increment_pc();
     }
 
     action instr_store() {
         int<32> top;
-        stack.read(top, hdr.pdata.SP - 32w1);
-        bit<32> offset = (bit<32>) curr_instr.arg;
-        stack.read(curr_instr.arg, offset);
+        stack.read(top, hdr.pdata.sp - 32w1);
+        bit<32> offset = (bit<32>) hdr.pdata.curr_instr_arg;
+        stack.read(hdr.pdata.curr_instr_arg, offset);
         increment_pc();
     }
 
     action instr_add() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
-        curr_instr.arg = l + r;
+        hdr.pdata.curr_instr_arg = l + r;
         ipush();
         increment_pc();
     }
@@ -383,11 +379,11 @@ control MyIngress(inout headers hdr,
     action instr_mul() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
-        curr_instr.arg = l * r;
+        hdr.pdata.curr_instr_arg = l * r;
         ipush();
         increment_pc();
     }
@@ -395,40 +391,40 @@ control MyIngress(inout headers hdr,
     action instr_sub() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
-        curr_instr.arg = l - r;
+        hdr.pdata.curr_instr_arg = l - r;
         ipush();
         increment_pc();
     }
 
     action instr_neg() {
         int<32> top;
-        stack.read(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.sp - 32w1);
         idrop();
-        curr_instr.arg = -top;
+        hdr.pdata.curr_instr_arg = -top;
         ipush();
         increment_pc();
     }
 
     action instr_reset() {
-        hdr.pdata.SP = 32w0;
+        hdr.pdata.sp = 32w0;
         increment_pc();
     }
 
     action instr_and() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l > 0 && r > 0) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -437,14 +433,14 @@ control MyIngress(inout headers hdr,
     action instr_or() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l > 0 || r > 0) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -453,14 +449,14 @@ control MyIngress(inout headers hdr,
     action instr_gt() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l > r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -469,14 +465,14 @@ control MyIngress(inout headers hdr,
     action instr_lt() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l < r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -485,14 +481,14 @@ control MyIngress(inout headers hdr,
     action instr_gte() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l >= r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -501,14 +497,14 @@ control MyIngress(inout headers hdr,
     action instr_lte() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l <= r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -517,14 +513,14 @@ control MyIngress(inout headers hdr,
     action instr_eq() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l == r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -533,14 +529,14 @@ control MyIngress(inout headers hdr,
     action instr_neq() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
         if (l != r) {
-            curr_instr.arg = 1;
+            hdr.pdata.curr_instr_arg = 1;
         } else {
-            curr_instr.arg = 0;
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         increment_pc();
@@ -548,8 +544,8 @@ control MyIngress(inout headers hdr,
 
     action instr_dup() {
         int<32> top;
-        stack.read(top, hdr.pdata.SP - 32w1);
-        curr_instr.arg = top;
+        stack.read(top, hdr.pdata.sp - 32w1);
+        hdr.pdata.curr_instr_arg = top;
         ipush();
         increment_pc();
     }
@@ -557,17 +553,17 @@ control MyIngress(inout headers hdr,
     action instr_swap() {
         int<32> l;
         int<32> r;
-        stack.read(l, hdr.pdata.SP - 32w1);
-        stack.read(r, hdr.pdata.SP - 32w2);
-        stack.write(hdr.pdata.SP - 32w2, l);
-        stack.write(hdr.pdata.SP - 32w1, r);
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
+        stack.write(hdr.pdata.sp - 32w2, l);
+        stack.write(hdr.pdata.sp - 32w1, r);
         increment_pc();
     }
 
     action instr_over() {
         int<32> second;
-        stack.read(second, hdr.pdata.SP - 32w2);
-        curr_instr.arg = second;
+        stack.read(second, hdr.pdata.sp - 32w2);
+        hdr.pdata.curr_instr_arg = second;
         ipush();
         increment_pc();
     }
@@ -576,35 +572,35 @@ control MyIngress(inout headers hdr,
         int<32> a;
         int<32> b;
         int<32> c;
-        stack.read(c, hdr.pdata.SP - 32w1);
-        stack.read(b, hdr.pdata.SP - 32w2);
-        stack.read(a, hdr.pdata.SP - 32w3);
-        stack.write(hdr.pdata.SP - 32w1, b);
-        stack.write(hdr.pdata.SP - 32w2, a);
-        stack.write(hdr.pdata.SP - 32w3, c);
+        stack.read(c, hdr.pdata.sp - 32w1);
+        stack.read(b, hdr.pdata.sp - 32w2);
+        stack.read(a, hdr.pdata.sp - 32w3);
+        stack.write(hdr.pdata.sp - 32w1, b);
+        stack.write(hdr.pdata.sp - 32w2, a);
+        stack.write(hdr.pdata.sp - 32w3, c);
         increment_pc();
     }
 
     action instr_jump() {
-        bit<32> pc = (bit<32>) curr_instr.arg;
-        hdr.pdata.PC = pc;
+        bit<32> pc = (bit<32>) hdr.pdata.curr_instr_arg;
+        hdr.pdata.pc = pc;
     }
 
     action instr_cjump() {
-        bit<32> pc = (bit<32>) curr_instr.arg;
+        bit<32> pc = (bit<32>) hdr.pdata.curr_instr_arg;
         int<32> top;
-        stack.read(top, hdr.pdata.SP - 32w1);
+        stack.read(top, hdr.pdata.sp - 32w1);
         idrop();
         if (top > 0) {
-            hdr.pdata.PC = pc;
+            hdr.pdata.pc = pc;
         } else {
-            hdr.pdata.PC = hdr.pdata.PC + 32w1;
+            hdr.pdata.pc = hdr.pdata.pc + 32w1;
         }
     }
 
     action instr_done() {
         hdr.pdata.done_flg = 1w1;
-        stack.read(hdr.pdata.result, hdr.pdata.SP - 32w1);
+        stack.read(hdr.pdata.result, hdr.pdata.sp - 32w1);
     }
 
     action instr_error() {
@@ -652,7 +648,7 @@ control MyIngress(inout headers hdr,
 
     table instruction_table {
         key = {
-            curr_instr.opcode: exact;
+            hdr.pdata.curr_instr_opcode: exact;
         }
         actions = {
             instr_load;
@@ -681,10 +677,9 @@ control MyIngress(inout headers hdr,
             instr_done;
             instr_error;
             instr_nop;
-            NoAction;
         }
         size = 1024;
-        default_action = NoAction();
+        default_action = instr_error();
     }
 
     apply {
@@ -696,10 +691,8 @@ control MyIngress(inout headers hdr,
             read_current_instr();
             instruction_table.apply();
             increment_steps();
-            // instr_done();
             deparse_stack();
             ipv4_self_fwd.apply();
-            ipv4_lpm.apply();
         }
     }
 }
