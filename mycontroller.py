@@ -4,6 +4,7 @@ import grpc
 import os
 import sys
 from time import sleep
+from headers import i_load, i_store, i_push, i_drop, i_add, i_mul, i_sub, i_neg, i_reset, i_and, i_or, i_gt, i_lt, i_lte, i_gte, i_eq, i_neq, i_dup, i_swap, i_over, i_rot, i_jump, i_cjump, i_done, i_error, i_nop
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils/'))
 import run_exercise
@@ -13,6 +14,35 @@ import p4runtime_lib.helper
 
 switches = {}
 p4info_helper = None
+
+instrs = [
+(i_load, "instr_load"),
+(i_store, "instr_store"),
+(i_push, "instr_push"),
+(i_drop, "instr_drop"),
+(i_add, "instr_add"),
+(i_mul, "instr_mul"),
+(i_sub, "instr_sub"),
+(i_neg, "instr_sub"),
+(i_reset, "instr_reset"),
+(i_and, "instr_and"),
+(i_or, "instr_or"),
+(i_gt, "instr_gt"),
+(i_lt, "instr_lt"),
+(i_lte, "instr_lte"),
+(i_gte, "instr_gte"),
+(i_eq, "instr_eq"),
+(i_neq, "instr_neq"),
+(i_dup, "instr_dup"),
+(i_swap, "instr_swap"),
+(i_over, "instr_over"),
+(i_rot, "instr_rot"),
+(i_jump, "instr_jump"),
+(i_cjump, "instr_cjump"),
+(i_done, "instr_done"),
+(i_error, "instr_error"),
+(i_nop, "instr_nop"),
+]
 
 def addForwardingRule(switch, dst_ip_addr, dst_port):
     # Helper function to install forwarding rules
@@ -43,6 +73,18 @@ def addSelfForwardingRule(switch, dst_ip_addr, dst_port):
     bmv2_switch = switches[switch]
     bmv2_switch.WriteTableEntry(table_entry)
     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
+
+def addInstrRule(switch, opcode, action):
+    # Helper function to install forwarding rules
+    table_entry = p4info_helper.buildTableEntry(
+        table_name="MyIngress.instruction_table",
+        match_fields={
+            "curr_instr.opcode": opcode
+        },
+        action_name=action)
+    bmv2_switch = switches[switch]
+    bmv2_switch.WriteTableEntry(table_entry)
+    print "Installed rule for %s" % action
     
 def main(p4info_file_path, bmv2_file_path, topo_file_path):
     # Instantiate a P4Runtime helper from the p4info file
@@ -51,7 +93,7 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
 
     try:
         # Establish a P4 Runtime connection to each switch
-        for switch in ["s1", "s2", "s3"]:
+        for switch in ["s1"]:
             switch_id = int(switch[1:])
             bmv2_switch = p4runtime_lib.bmv2.Bmv2SwitchConnection(
                 name=switch,
@@ -71,7 +113,11 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
 
         addSelfForwardingRule("s1","10.0.2.22",3)
         addSelfForwardingRule("s1","10.0.1.11",3)
-    
+
+        for i in instrs:
+            opcode, action = i
+            addInstrRule("s1", opcode, action)
+
     except KeyboardInterrupt:
         print " Shutting down."
     except grpc.RpcError as e:

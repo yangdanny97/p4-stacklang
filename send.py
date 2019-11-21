@@ -25,8 +25,7 @@ def get_if():
 
 def test_basic():
     return [
-        PUSH(1),
-        PUSH(2),
+        PUSH(10),
         DONE()
     ]
 
@@ -67,9 +66,10 @@ def main():
 
     pkt = pkt /IP(dst=addr)
     instrs = get_program()
-    build_packet(pkt, instrs)
+    pkt = build_packet(pkt, instrs)
 
-    pkt.show2()
+    pkt[2].show()
+    sys.stdout.flush() 
     sendp(pkt, iface=iface, verbose=False)
 
 

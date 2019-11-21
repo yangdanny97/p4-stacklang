@@ -8,6 +8,7 @@ from scapy.all import Packet, IPOption
 from scapy.all import ShortField, IntField, LongField, BitField, FieldListField, FieldLenField
 from scapy.all import IP, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR
+from headers import *
 
 def get_if():
     ifs=get_if_list()
@@ -35,8 +36,7 @@ class IPOption_MRI(IPOption):
                                    length_from=lambda pkt:pkt.count*4) ]
 
 def handle_pkt(pkt):
-    pkt.show2()
-    hexdump(pkt)
+    pkt[2].show()
     sys.stdout.flush()        
 
 def main():

@@ -39,8 +39,8 @@ MAX_INSTRS = 32
 class Pdata(Packet):
     name = 'pdata'
     fields_desc = [
-        IntField('pc', 0, 32),
-        IntField('sp', 0, 32),
+        IntField('pc', 0),
+        IntField('sp', 0),
         BitField('steps', 0, 32),
         BitField('done_flg', 0, 1),
         BitField('err_flg', 0, 1),
