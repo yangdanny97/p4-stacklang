@@ -11,8 +11,8 @@ const bit<16> TYPE_IPV4 = 0x800;
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<32> MAX_STEPS = 250;
-const bit<32> STACK_SIZE = 128;
-const bit<32> MAX_INSTRS = 128;
+const bit<32> STACK_SIZE = 32;
+const bit<32> MAX_INSTRS = 32;
 
 const bit<8> i_load = 0x00;
 const bit<8> i_store = 0x01;
@@ -111,6 +111,8 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
     bit<32> instrs_to_parse;
     bit<32> total_instrs;
+    bit<32> n = STACK_SIZE;
+    bit<32> n = MAX_INSTRS;
 
     state start {
         instrs_to_parse = 32w0;
@@ -137,165 +139,25 @@ parser MyParser(packet_in packet,
     state parse_pdata {
         packet.extract(hdr.pdata);
         instrs_to_parse = hdr.pdata.PC;
-        transition parse_all_instructions;
+        transition parse_instructions;
     }
 
-    state parse_all_instructions {
-        transition select(total_instrs) {
-            0: parse_stack;
-            default: parse_instruction;
-        }
-    }
-
-    state parse_instruction {
-        total_instrs = total_instrs - 32w1;
-        transition select(instrs_to_parse) {
-            0: parse_current_instruction;
-            default: next_instruction;
-        }
-    }
-
-    state next_instruction {
+    state parse_instructions {
         packet.extract(hdr.instructions.next);
-        instrs_to_parse = instrs_to_parse - 32w1;
-        transition parse_all_instructions;
-    }
-
-    state parse_current_instruction {
-        meta.current_instr.setValid();
-        meta.current_instr = packet.lookahead<instr_t>();
-        transition next_instruction;
+        m = m - 1;
+        transition select(m) {
+            0: parse_stack;
+            default: parse_instructions;
+        }
     }
 
     state parse_stack {
         packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        packet.extract(hdr.stack.next);
-        transition accept;
+        n = n - 1;
+        transition select(n) {
+            0: accept;
+            default: parse_stack;
+        }
     }
 }
 
@@ -317,8 +179,77 @@ control MyIngress(inout headers hdr,
     
     instr_t curr_instr;
     register<int<32>>(STACK_SIZE) stack;
+    register<bit<8>>(MAX_INSTRS) opcodes;
+    register<int<32>>(MAX_INSTRS) args;
 
-    action parse_stack() {
+    action parse_instructions() {
+        opcodes.write(0, hdr.instructions[0].opcode);
+        opcodes.write(1, hdr.instructions[1].opcode);
+        opcodes.write(2, hdr.instructions[2].opcode);
+        opcodes.write(3, hdr.instructions[3].opcode);
+        opcodes.write(4, hdr.instructions[4].opcode);
+        opcodes.write(5, hdr.instructions[5].opcode);
+        opcodes.write(6, hdr.instructions[6].opcode);
+        opcodes.write(7, hdr.instructions[7].opcode);
+        opcodes.write(8, hdr.instructions[8].opcode);
+        opcodes.write(9, hdr.instructions[9].opcode);
+        opcodes.write(10, hdr.instructions[10].opcode);
+        opcodes.write(11, hdr.instructions[11].opcode);
+        opcodes.write(12, hdr.instructions[12].opcode);
+        opcodes.write(13, hdr.instructions[13].opcode);
+        opcodes.write(14, hdr.instructions[14].opcode);
+        opcodes.write(15, hdr.instructions[15].opcode);
+        opcodes.write(16, hdr.instructions[16].opcode);
+        opcodes.write(17, hdr.instructions[17].opcode);
+        opcodes.write(18, hdr.instructions[18].opcode);
+        opcodes.write(19, hdr.instructions[19].opcode);
+        opcodes.write(20, hdr.instructions[20].opcode);
+        opcodes.write(21, hdr.instructions[21].opcode);
+        opcodes.write(22, hdr.instructions[22].opcode);
+        opcodes.write(23, hdr.instructions[23].opcode);
+        opcodes.write(24, hdr.instructions[24].opcode);
+        opcodes.write(25, hdr.instructions[25].opcode);
+        opcodes.write(26, hdr.instructions[26].opcode);
+        opcodes.write(27, hdr.instructions[27].opcode);
+        opcodes.write(28, hdr.instructions[28].opcode);
+        opcodes.write(29, hdr.instructions[29].opcode);
+        opcodes.write(30, hdr.instructions[30].opcode);
+        opcodes.write(31, hdr.instructions[31].opcode);
+        args.write(0, hdr.instructions[0].arg);
+        args.write(1, hdr.instructions[1].arg);
+        args.write(2, hdr.instructions[2].arg);
+        args.write(3, hdr.instructions[3].arg);
+        args.write(4, hdr.instructions[4].arg);
+        args.write(5, hdr.instructions[5].arg);
+        args.write(6, hdr.instructions[6].arg);
+        args.write(7, hdr.instructions[7].arg);
+        args.write(8, hdr.instructions[8].arg);
+        args.write(9, hdr.instructions[9].arg);
+        args.write(10, hdr.instructions[10].arg);
+        args.write(11, hdr.instructions[11].arg);
+        args.write(12, hdr.instructions[12].arg);
+        args.write(13, hdr.instructions[13].arg);
+        args.write(14, hdr.instructions[14].arg);
+        args.write(15, hdr.instructions[15].arg);
+        args.write(16, hdr.instructions[16].arg);
+        args.write(17, hdr.instructions[17].arg);
+        args.write(18, hdr.instructions[18].arg);
+        args.write(19, hdr.instructions[19].arg);
+        args.write(20, hdr.instructions[20].arg);
+        args.write(21, hdr.instructions[21].arg);
+        args.write(22, hdr.instructions[22].arg);
+        args.write(23, hdr.instructions[23].arg);
+        args.write(24, hdr.instructions[24].arg);
+        args.write(25, hdr.instructions[25].arg);
+        args.write(26, hdr.instructions[26].arg);
+        args.write(27, hdr.instructions[27].arg);
+        args.write(28, hdr.instructions[28].arg);
+        args.write(29, hdr.instructions[29].arg);
+        args.write(30, hdr.instructions[30].arg);
+        args.write(31, hdr.instructions[31].arg);
+    }
+
+        action parse_stack() {
         stack.write(0, hdr.stack[0].value);
         stack.write(1, hdr.stack[1].value);
         stack.write(2, hdr.stack[2].value);
@@ -351,102 +282,6 @@ control MyIngress(inout headers hdr,
         stack.write(29, hdr.stack[29].value);
         stack.write(30, hdr.stack[30].value);
         stack.write(31, hdr.stack[31].value);
-        stack.write(32, hdr.stack[32].value);
-        stack.write(33, hdr.stack[33].value);
-        stack.write(34, hdr.stack[34].value);
-        stack.write(35, hdr.stack[35].value);
-        stack.write(36, hdr.stack[36].value);
-        stack.write(37, hdr.stack[37].value);
-        stack.write(38, hdr.stack[38].value);
-        stack.write(39, hdr.stack[39].value);
-        stack.write(40, hdr.stack[40].value);
-        stack.write(41, hdr.stack[41].value);
-        stack.write(42, hdr.stack[42].value);
-        stack.write(43, hdr.stack[43].value);
-        stack.write(44, hdr.stack[44].value);
-        stack.write(45, hdr.stack[45].value);
-        stack.write(46, hdr.stack[46].value);
-        stack.write(47, hdr.stack[47].value);
-        stack.write(48, hdr.stack[48].value);
-        stack.write(49, hdr.stack[49].value);
-        stack.write(50, hdr.stack[50].value);
-        stack.write(51, hdr.stack[51].value);
-        stack.write(52, hdr.stack[52].value);
-        stack.write(53, hdr.stack[53].value);
-        stack.write(54, hdr.stack[54].value);
-        stack.write(55, hdr.stack[55].value);
-        stack.write(56, hdr.stack[56].value);
-        stack.write(57, hdr.stack[57].value);
-        stack.write(58, hdr.stack[58].value);
-        stack.write(59, hdr.stack[59].value);
-        stack.write(60, hdr.stack[60].value);
-        stack.write(61, hdr.stack[61].value);
-        stack.write(62, hdr.stack[62].value);
-        stack.write(63, hdr.stack[63].value);
-        stack.write(64, hdr.stack[64].value);
-        stack.write(65, hdr.stack[65].value);
-        stack.write(66, hdr.stack[66].value);
-        stack.write(67, hdr.stack[67].value);
-        stack.write(68, hdr.stack[68].value);
-        stack.write(69, hdr.stack[69].value);
-        stack.write(70, hdr.stack[70].value);
-        stack.write(71, hdr.stack[71].value);
-        stack.write(72, hdr.stack[72].value);
-        stack.write(73, hdr.stack[73].value);
-        stack.write(74, hdr.stack[74].value);
-        stack.write(75, hdr.stack[75].value);
-        stack.write(76, hdr.stack[76].value);
-        stack.write(77, hdr.stack[77].value);
-        stack.write(78, hdr.stack[78].value);
-        stack.write(79, hdr.stack[79].value);
-        stack.write(80, hdr.stack[80].value);
-        stack.write(81, hdr.stack[81].value);
-        stack.write(82, hdr.stack[82].value);
-        stack.write(83, hdr.stack[83].value);
-        stack.write(84, hdr.stack[84].value);
-        stack.write(85, hdr.stack[85].value);
-        stack.write(86, hdr.stack[86].value);
-        stack.write(87, hdr.stack[87].value);
-        stack.write(88, hdr.stack[88].value);
-        stack.write(89, hdr.stack[89].value);
-        stack.write(90, hdr.stack[90].value);
-        stack.write(91, hdr.stack[91].value);
-        stack.write(92, hdr.stack[92].value);
-        stack.write(93, hdr.stack[93].value);
-        stack.write(94, hdr.stack[94].value);
-        stack.write(95, hdr.stack[95].value);
-        stack.write(96, hdr.stack[96].value);
-        stack.write(97, hdr.stack[97].value);
-        stack.write(98, hdr.stack[98].value);
-        stack.write(99, hdr.stack[99].value);
-        stack.write(100, hdr.stack[100].value);
-        stack.write(101, hdr.stack[101].value);
-        stack.write(102, hdr.stack[102].value);
-        stack.write(103, hdr.stack[103].value);
-        stack.write(104, hdr.stack[104].value);
-        stack.write(105, hdr.stack[105].value);
-        stack.write(106, hdr.stack[106].value);
-        stack.write(107, hdr.stack[107].value);
-        stack.write(108, hdr.stack[108].value);
-        stack.write(109, hdr.stack[109].value);
-        stack.write(110, hdr.stack[110].value);
-        stack.write(111, hdr.stack[111].value);
-        stack.write(112, hdr.stack[112].value);
-        stack.write(113, hdr.stack[113].value);
-        stack.write(114, hdr.stack[114].value);
-        stack.write(115, hdr.stack[115].value);
-        stack.write(116, hdr.stack[116].value);
-        stack.write(117, hdr.stack[117].value);
-        stack.write(118, hdr.stack[118].value);
-        stack.write(119, hdr.stack[119].value);
-        stack.write(120, hdr.stack[120].value);
-        stack.write(121, hdr.stack[121].value);
-        stack.write(122, hdr.stack[122].value);
-        stack.write(123, hdr.stack[123].value);
-        stack.write(124, hdr.stack[124].value);
-        stack.write(125, hdr.stack[125].value);
-        stack.write(126, hdr.stack[126].value);
-        stack.write(127, hdr.stack[127].value);
     }
 
     action deparse_stack() {
@@ -482,102 +317,6 @@ control MyIngress(inout headers hdr,
         stack.read(hdr.stack[29].value, 29);
         stack.read(hdr.stack[30].value, 30);
         stack.read(hdr.stack[31].value, 31);
-        stack.read(hdr.stack[32].value, 32);
-        stack.read(hdr.stack[33].value, 33);
-        stack.read(hdr.stack[34].value, 34);
-        stack.read(hdr.stack[35].value, 35);
-        stack.read(hdr.stack[36].value, 36);
-        stack.read(hdr.stack[37].value, 37);
-        stack.read(hdr.stack[38].value, 38);
-        stack.read(hdr.stack[39].value, 39);
-        stack.read(hdr.stack[40].value, 40);
-        stack.read(hdr.stack[41].value, 41);
-        stack.read(hdr.stack[42].value, 42);
-        stack.read(hdr.stack[43].value, 43);
-        stack.read(hdr.stack[44].value, 44);
-        stack.read(hdr.stack[45].value, 45);
-        stack.read(hdr.stack[46].value, 46);
-        stack.read(hdr.stack[47].value, 47);
-        stack.read(hdr.stack[48].value, 48);
-        stack.read(hdr.stack[49].value, 49);
-        stack.read(hdr.stack[50].value, 50);
-        stack.read(hdr.stack[51].value, 51);
-        stack.read(hdr.stack[52].value, 52);
-        stack.read(hdr.stack[53].value, 53);
-        stack.read(hdr.stack[54].value, 54);
-        stack.read(hdr.stack[55].value, 55);
-        stack.read(hdr.stack[56].value, 56);
-        stack.read(hdr.stack[57].value, 57);
-        stack.read(hdr.stack[58].value, 58);
-        stack.read(hdr.stack[59].value, 59);
-        stack.read(hdr.stack[60].value, 60);
-        stack.read(hdr.stack[61].value, 61);
-        stack.read(hdr.stack[62].value, 62);
-        stack.read(hdr.stack[63].value, 63);
-        stack.read(hdr.stack[64].value, 64);
-        stack.read(hdr.stack[65].value, 65);
-        stack.read(hdr.stack[66].value, 66);
-        stack.read(hdr.stack[67].value, 67);
-        stack.read(hdr.stack[68].value, 68);
-        stack.read(hdr.stack[69].value, 69);
-        stack.read(hdr.stack[70].value, 70);
-        stack.read(hdr.stack[71].value, 71);
-        stack.read(hdr.stack[72].value, 72);
-        stack.read(hdr.stack[73].value, 73);
-        stack.read(hdr.stack[74].value, 74);
-        stack.read(hdr.stack[75].value, 75);
-        stack.read(hdr.stack[76].value, 76);
-        stack.read(hdr.stack[77].value, 77);
-        stack.read(hdr.stack[78].value, 78);
-        stack.read(hdr.stack[79].value, 79);
-        stack.read(hdr.stack[80].value, 80);
-        stack.read(hdr.stack[81].value, 81);
-        stack.read(hdr.stack[82].value, 82);
-        stack.read(hdr.stack[83].value, 83);
-        stack.read(hdr.stack[84].value, 84);
-        stack.read(hdr.stack[85].value, 85);
-        stack.read(hdr.stack[86].value, 86);
-        stack.read(hdr.stack[87].value, 87);
-        stack.read(hdr.stack[88].value, 88);
-        stack.read(hdr.stack[89].value, 89);
-        stack.read(hdr.stack[90].value, 90);
-        stack.read(hdr.stack[91].value, 91);
-        stack.read(hdr.stack[92].value, 92);
-        stack.read(hdr.stack[93].value, 93);
-        stack.read(hdr.stack[94].value, 94);
-        stack.read(hdr.stack[95].value, 95);
-        stack.read(hdr.stack[96].value, 96);
-        stack.read(hdr.stack[97].value, 97);
-        stack.read(hdr.stack[98].value, 98);
-        stack.read(hdr.stack[99].value, 99);
-        stack.read(hdr.stack[100].value, 100);
-        stack.read(hdr.stack[101].value, 101);
-        stack.read(hdr.stack[102].value, 102);
-        stack.read(hdr.stack[103].value, 103);
-        stack.read(hdr.stack[104].value, 104);
-        stack.read(hdr.stack[105].value, 105);
-        stack.read(hdr.stack[106].value, 106);
-        stack.read(hdr.stack[107].value, 107);
-        stack.read(hdr.stack[108].value, 108);
-        stack.read(hdr.stack[109].value, 109);
-        stack.read(hdr.stack[110].value, 110);
-        stack.read(hdr.stack[111].value, 111);
-        stack.read(hdr.stack[112].value, 112);
-        stack.read(hdr.stack[113].value, 113);
-        stack.read(hdr.stack[114].value, 114);
-        stack.read(hdr.stack[115].value, 115);
-        stack.read(hdr.stack[116].value, 116);
-        stack.read(hdr.stack[117].value, 117);
-        stack.read(hdr.stack[118].value, 118);
-        stack.read(hdr.stack[119].value, 119);
-        stack.read(hdr.stack[120].value, 120);
-        stack.read(hdr.stack[121].value, 121);
-        stack.read(hdr.stack[122].value, 122);
-        stack.read(hdr.stack[123].value, 123);
-        stack.read(hdr.stack[124].value, 124);
-        stack.read(hdr.stack[125].value, 125);
-        stack.read(hdr.stack[126].value, 126);
-        stack.read(hdr.stack[127].value, 127);
     }
 
     action read_stack(out int<32> value, in bit<32> offset) {
@@ -589,7 +328,8 @@ control MyIngress(inout headers hdr,
     }
 
     action read_current_instr() {
-        curr_instr = meta.current_instr;
+        args.read(curr_instr.arg, hdr.pdata.PC);
+        opcodes.read(curr_instr.opcode, hdr.pdata.PC);
     }
 
     action increment_pc() {
