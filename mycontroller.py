@@ -42,6 +42,8 @@ instrs = [
 (i_done, "instr_done"),
 (i_error, "instr_error"),
 (i_nop, "instr_nop"),
+(i_loadreg, "instr_loadreg"),
+(i_storereg, "instr_storereg"),
 ]
 
 def addForwardingRule(switch, dst_ip_addr, dst_port):

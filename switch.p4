@@ -13,6 +13,7 @@ const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<32> MAX_STEPS = 250;
 const bit<32> STACK_SIZE = 32;
 const bit<32> MAX_INSTRS = 32;
+const bit<32> NUM_REGISTERS = 32;
 
 const bit<8> i_load = 0x00;
 const bit<8> i_store = 0x01;
@@ -40,6 +41,8 @@ const bit<8> i_cjump = 0x16;
 const bit<8> i_done = 0x17;
 const bit<8> i_error = 0x18;
 const bit<8> i_nop = 0x19;
+const bit<8> i_loadreg = 0x1A;
+const bit<8> i_storereg = 0x1B;
 
 header instr_t {
     bit<8> opcode;
@@ -178,6 +181,7 @@ control MyIngress(inout headers hdr,
     register<int<32>>(STACK_SIZE) stack;
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
+    register<int<32>>(NUM_REGISTERS) swregs;
 
     action parse_instructions() {
         opcodes.write(0, hdr.instructions[0].opcode);
@@ -612,6 +616,22 @@ control MyIngress(inout headers hdr,
         increment_pc();
      }
 
+    action instr_loadreg() {
+        bit<32> reg = (bit<32>) hdr.pdata.curr_instr_arg;
+        swregs.read(hdr.pdata.curr_instr_arg, reg);
+        ipush();
+        increment_pc();
+    }
+
+    action instr_storereg() {
+        int<32> top;
+        stack.read(top, hdr.pdata.sp - 32w1);
+        bit<32> reg = (bit<32>) hdr.pdata.curr_instr_arg;
+        swregs.write(reg, top);
+        idrop();
+        increment_pc();
+    }
+
     action drop() {
         mark_to_drop(standard_metadata);
     }
@@ -678,6 +698,8 @@ control MyIngress(inout headers hdr,
             instr_done;
             instr_error;
             instr_nop;
+            instr_loadreg;
+            instr_storereg;
         }
         size = 1024;
         default_action = instr_error();

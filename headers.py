@@ -30,6 +30,8 @@ i_cjump = 0x16
 i_done = 0x17
 i_error = 0x18
 i_nop = 0x19
+i_loadreg = 0x1A
+i_storereg = 0x1B
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -195,6 +197,13 @@ def NOP():
 def ERROR():
     return Instruction(opcode = i_error, arg = 0)
 
+# load value from register [r] to top of stack
+def LOADREG(r):
+    return Instruction(opcode = i_loadreg, arg = r)
+
+# store top of stack to register [r]
+def STOREREG(r):
+    return Instruction(opcode = i_storereg, arg = r)
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs):

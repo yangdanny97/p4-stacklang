@@ -197,20 +197,64 @@ def test_fact(n = 5):
         DONE()
     ]
 
-def get_program():
-    return test_fact()
+def test_fact_regs(n = 5):
+    return [
+        PUSH(n), # current number
+        STOREREG(0),
+        PUSH(1), # result
+        STOREREG(1),
+        NOP(),
+        PUSH(1), # if n <= 1 then jump to end
+        LOADREG(0),
+        LTE(),
+        CJUMP(18),
+        LOADREG(0), # multiply current number with result and store it
+        LOADREG(1),
+        MUL(),
+        STOREREG(1),
+        PUSH(1), # subtract 1 from current number
+        LOADREG(0),
+        SUB(),
+        STOREREG(0),
+        JUMP(4), # jump to first NOP
+        NOP(),
+        DONE()
+    ]
+
+programs = {
+    "basic": test_basic(),
+    "error": test_error(),
+    "add": test_add(),
+    "load": test_load(),
+    "load_store": test_load_store(),
+    "fib": test_fib(),
+    "fib2": test_fib2(),
+    "fibn": test_fib_n(),
+    "sub": test_sub(),
+    "if": test_if(),
+    "if2": test_if2(),
+    "fact": test_fact()
+}
+
+def get_program(pname):
+    if pname not in programs:
+        raise Exception("unknown program!")
+    else:
+        return programs[pname]
+
 
 
 def main():
 
     addr = socket.gethostbyname(sys.argv[1])
+    pname = sys.argv[2]
     iface = get_if()
 
     print "sending on interface %s to %s" % (iface, str(addr))
     pkt = Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff')
 
     pkt = pkt /IP(dst=addr)
-    instrs = get_program()
+    instrs = get_program(pname)
     pkt = build_packet(pkt, instrs)
 
     pkt[2].show()
