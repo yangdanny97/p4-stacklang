@@ -360,7 +360,8 @@ control MyIngress(inout headers hdr,
         int<32> top;
         stack.read(top, hdr.pdata.sp - 32w1);
         bit<32> offset = (bit<32>) hdr.pdata.curr_instr_arg;
-        stack.read(hdr.pdata.curr_instr_arg, offset);
+        stack.write(offset, top);
+        idrop();
         increment_pc();
     }
 

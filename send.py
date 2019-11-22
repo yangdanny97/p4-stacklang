@@ -75,6 +75,8 @@ def test_load_store():
         LOAD(0),
         DUP(),
         ADD(),
+        STORE(1),
+        LOAD(1),
         DONE()
     ]
 
@@ -91,7 +93,8 @@ def test_fib():
         ADD(),
         SWAP(),
         OVER(),
-        ADD()
+        ADD(),
+        DONE(),
     ]
 
 # should return 5
@@ -108,6 +111,46 @@ def test_fib2():
         DUP(),
         ROT(),
         ADD(),
+        DONE(),
+    ]
+
+# should return 1
+def test_sub():
+    return [
+        PUSH(2),
+        PUSH(3),
+        SUB(),
+        DONE(),
+    ]
+
+# should return 7
+def test_if():
+    return [
+        PUSH(2),
+        PUSH(3),
+        GTE(),
+        CJUMP(6),
+        PUSH(5),
+        JUMP(8),
+        NOP(),
+        PUSH(7),
+        NOP(),
+        DONE(),
+    ]
+
+# should return 5
+def test_if2():
+    return [
+        PUSH(2),
+        PUSH(1),
+        GTE(),
+        CJUMP(6),
+        PUSH(5),
+        JUMP(8),
+        NOP(),
+        PUSH(7),
+        NOP(),
+        DONE(),
     ]
 
 def test_fib_n(n = 10):
@@ -119,16 +162,20 @@ def test_fib_n(n = 10):
         PUSH(0), # if n <= 0 then jump to end
         LOAD(0),
         LTE(),
-        CJUMP(12),
+        CJUMP(16),
         DUP(),
         ROT(),
         ADD(),
+        PUSH(1), # subtract 1 from current number
+        LOAD(0),
+        SUB(),
+        STORE(0),
         JUMP(3), # jump to the first NOP
         NOP(),
         DONE()
     ]
 
-def test_fact(n = 10):
+def test_fact(n = 5):
     return [
         PUSH(n), # current number
         PUSH(1), # result
@@ -136,7 +183,7 @@ def test_fact(n = 10):
         PUSH(1), # if n <= 1 then jump to end
         LOAD(0),
         LTE(),
-        CJUMP(15),
+        CJUMP(16),
         LOAD(0), # multiply current number with result and store it
         LOAD(1),
         MUL(),
@@ -145,13 +192,13 @@ def test_fact(n = 10):
         LOAD(0),
         SUB(),
         STORE(0),
-        JUMP(2) # jump to first NOP
+        JUMP(2), # jump to first NOP
         NOP(),
         DONE()
     ]
 
 def get_program():
-    return test_add()
+    return test_fact()
 
 
 def main():
