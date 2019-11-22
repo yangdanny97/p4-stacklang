@@ -36,6 +36,7 @@ def test_error():
         PUSH(2),
     ]
 
+# should return 1
 def test_swap():
     return [
         PUSH(1),
@@ -44,11 +45,108 @@ def test_swap():
         DONE()
     ]
 
+# should return 3
 def test_add():
     return [
         PUSH(1),
         PUSH(2),
         ADD(),
+        DONE()
+    ]
+
+# should return 4
+def test_load():
+    return [
+        PUSH(1),
+        PUSH(2),
+        PUSH(3),
+        LOAD(1),
+        LOAD(1),
+        ADD(),
+        DONE()
+    ]
+
+# should return 2
+def test_load_store():
+    return [
+        PUSH(1),
+        PUSH(0),
+        PUSH(0),
+        LOAD(0),
+        DUP(),
+        ADD(),
+        DONE()
+    ]
+
+# should return 5
+def test_fib():
+    return [
+        PUSH(1),
+        PUSH(1),
+        SWAP(),
+        OVER(),
+        ADD(),
+        SWAP(),
+        OVER(),
+        ADD(),
+        SWAP(),
+        OVER(),
+        ADD()
+    ]
+
+# should return 5
+def test_fib2():
+    return [
+        PUSH(1),
+        PUSH(1),
+        DUP(),
+        ROT(),
+        ADD(),
+        DUP(),
+        ROT(),
+        ADD(),
+        DUP(),
+        ROT(),
+        ADD(),
+    ]
+
+def test_fib_n(n = 10):
+    return [
+        PUSH(n - 2), # space reserved for n
+        PUSH(1),
+        PUSH(1),
+        NOP(),
+        PUSH(0), # if n <= 0 then jump to end
+        LOAD(0),
+        LTE(),
+        CJUMP(12),
+        DUP(),
+        ROT(),
+        ADD(),
+        JUMP(3), # jump to the first NOP
+        NOP(),
+        DONE()
+    ]
+
+def test_fact(n = 10):
+    return [
+        PUSH(n), # current number
+        PUSH(1), # result
+        NOP(),
+        PUSH(1), # if n <= 1 then jump to end
+        LOAD(0),
+        LTE(),
+        CJUMP(15),
+        LOAD(0), # multiply current number with result and store it
+        LOAD(1),
+        MUL(),
+        STORE(1),
+        PUSH(1), # subtract 1 from current number
+        LOAD(0),
+        SUB(),
+        STORE(0),
+        JUMP(2) # jump to first NOP
+        NOP(),
         DONE()
     ]
 
