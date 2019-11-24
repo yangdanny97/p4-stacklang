@@ -32,6 +32,9 @@ i_error = 0x18
 i_nop = 0x19
 i_loadreg = 0x1A
 i_storereg = 0x1B
+i_metadata = 0x1C
+i_sal = 0x1D
+i_sar = 0x1E
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -125,6 +128,12 @@ def MUL():
 def SUB():
     return Instruction(opcode = i_sub, arg = 0)
 
+def SAL():
+    return Instruction(opcode = i_sal, arg = 0)
+
+def SAR():
+    return Instruction(opcode = i_sar, arg = 0)
+
 # negate top of stack
 def NEG():
     return Instruction(opcode = i_neg, arg = 0)
@@ -204,6 +213,25 @@ def LOADREG(r):
 # store top of stack to register [r]
 def STOREREG(r):
     return Instruction(opcode = i_storereg, arg = r)
+
+# push some standard metadata to top of stack (which one determined arg and hardware)
+# values are extended or truncated to fit int<32>
+'''
+v1model:
+0 ingress_port;
+1 egress_spec;
+2 egress_port;
+3 instance_type;
+4 packet_length;
+5 enq_timestamp;
+6 enq_qdepth;
+7 deq_timedelta;
+8 deq_qdepth;
+9 ingress_global_timestamp;
+10 egress_global_timestamp;
+'''
+def METADATA(r):
+    return Instruction(opcode = i_metadata, arg = r)
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs):

@@ -43,6 +43,9 @@ const bit<8> i_error = 0x18;
 const bit<8> i_nop = 0x19;
 const bit<8> i_loadreg = 0x1A;
 const bit<8> i_storereg = 0x1B;
+const bit<8> i_metadata = 0x1C;
+const bit<8> i_sal = 0x1D;
+const bit<8> i_sar = 0x1E;
 
 header instr_t {
     bit<8> opcode;
@@ -700,6 +703,7 @@ control MyIngress(inout headers hdr,
             instr_nop;
             instr_loadreg;
             instr_storereg;
+            // TODO metadata, sal, sar
         }
         size = 1024;
         default_action = instr_error();
@@ -707,6 +711,10 @@ control MyIngress(inout headers hdr,
 
     apply {
         if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1 || hdr.pdata.steps > MAX_STEPS) {
+            // reset steps, done flag, PC
+            hdr.pdata.steps = 32w0;
+            hdr.pdata.done_flg = 1w0;
+            hdr.pdata.PC = 32w0;
             ipv4_lpm.apply();
         } else {
             parse_instructions();

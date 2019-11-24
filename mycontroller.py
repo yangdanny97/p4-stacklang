@@ -4,7 +4,8 @@ import grpc
 import os
 import sys
 from time import sleep
-from headers import i_load, i_store, i_push, i_drop, i_add, i_mul, i_sub, i_neg, i_reset, i_and, i_or, i_gt, i_lt, i_lte, i_gte, i_eq, i_neq, i_dup, i_swap, i_over, i_rot, i_jump, i_cjump, i_done, i_error, i_nop
+# from headers import i_load, i_store, i_push, i_drop, i_add, i_mul, i_sub, i_neg, i_reset, i_and, i_or, i_gt, i_lt, i_lte, i_gte, i_eq, i_neq, i_dup, i_swap, i_over, i_rot, i_jump, i_cjump, i_done, i_error, i_nop, i_metadata, i_sal, i_sar
+from headers import *
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils/'))
 import run_exercise
@@ -44,6 +45,9 @@ instrs = [
 (i_nop, "instr_nop"),
 (i_loadreg, "instr_loadreg"),
 (i_storereg, "instr_storereg"),
+# (i_metadata, "instr_metadata"),
+# (i_sal, "instr_sal"),
+# (i_sar, "instr_sar"),
 ]
 
 def addForwardingRule(switch, dst_ip_addr, dst_port):
