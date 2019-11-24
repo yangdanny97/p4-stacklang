@@ -1,39 +1,39 @@
 from headers import *
 
 def test_basic():
-    return [
+    return ([
         PUSH(10),
         DONE()
-    ]
+    ], [])
 
 def test_error():
-    return [
+    return ([
         PUSH(1),
         ERROR(),
         PUSH(2),
-    ]
+    ], [])
 
 # should return 1
 def test_swap():
-    return [
+    return ([
         PUSH(1),
         PUSH(2),
         SWAP(),
         DONE()
-    ]
+    ], [])
 
 # should return 3
 def test_add():
-    return [
+    return ([
         PUSH(1),
         PUSH(2),
         ADD(),
         DONE()
-    ]
+    ], [])
 
 # should return 4
 def test_load():
-    return [
+    return ([
         PUSH(1),
         PUSH(2),
         PUSH(3),
@@ -41,11 +41,11 @@ def test_load():
         LOAD(1),
         ADD(),
         DONE()
-    ]
+    ], [])
 
 # should return 2
 def test_load_store():
-    return [
+    return ([
         PUSH(1),
         PUSH(0),
         PUSH(0),
@@ -55,11 +55,11 @@ def test_load_store():
         STORE(1),
         LOAD(1),
         DONE()
-    ]
+    ], [])
 
 # should return 5
 def test_fib():
-    return [
+    return ([
         PUSH(1),
         PUSH(1),
         SWAP(),
@@ -72,11 +72,11 @@ def test_fib():
         OVER(),
         ADD(),
         DONE(),
-    ]
+    ], [])
 
 # should return 5
 def test_fib2():
-    return [
+    return ([
         PUSH(1),
         PUSH(1),
         DUP(),
@@ -89,20 +89,20 @@ def test_fib2():
         ROT(),
         ADD(),
         DONE(),
-    ]
+    ], [])
 
 # should return 1
 def test_sub():
-    return [
+    return ([
         PUSH(2),
         PUSH(3),
         SUB(),
         DONE(),
-    ]
+    ], [])
 
 # should return 7
 def test_if():
-    return [
+    return ([
         PUSH(2),
         PUSH(3),
         GTE(),
@@ -113,11 +113,11 @@ def test_if():
         PUSH(7),
         NOP(),
         DONE(),
-    ]
+    ], [])
 
 # should return 5
 def test_if2():
-    return [
+    return ([
         PUSH(2),
         PUSH(1),
         GTE(),
@@ -128,10 +128,10 @@ def test_if2():
         PUSH(7),
         NOP(),
         DONE(),
-    ]
+    ], [])
 
 def test_fib_n(n = 10):
-    return [
+    return ([
         PUSH(n - 2), # space reserved for n
         PUSH(1),
         PUSH(1),
@@ -150,10 +150,10 @@ def test_fib_n(n = 10):
         JUMP(3), # jump to the first NOP
         NOP(),
         DONE()
-    ]
+    ], [])
 
 def test_fact(n = 5):
-    return [
+    return ([
         PUSH(n), # current number
         PUSH(1), # result
         NOP(),
@@ -172,10 +172,10 @@ def test_fact(n = 5):
         JUMP(2), # jump to first NOP
         NOP(),
         DONE()
-    ]
+    ], [])
 
 def test_fact_regs(n = 5):
-    return [
+    return ([
         PUSH(n), # current number
         STOREREG(0),
         PUSH(1), # result
@@ -196,7 +196,7 @@ def test_fact_regs(n = 5):
         JUMP(4), # jump to first NOP
         NOP(),
         DONE()
-    ]
+    ], [])
 
 programs = {
     "basic": test_basic(),

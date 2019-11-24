@@ -24,8 +24,6 @@ def get_if():
         exit(1)
     return iface
 
-
-
 def get_program(pname):
     if pname not in programs:
         raise Exception("unknown program!")
@@ -39,8 +37,8 @@ def send_pkt(addr, pname):
     pkt = Ether(src=get_if_hwaddr(iface), dst='ff:ff:ff:ff:ff:ff')
 
     pkt = pkt /IP(dst=addr)
-    instrs = get_program(pname)
-    pkt = build_packet(pkt, instrs)
+    instrs, stk = get_program(pname)
+    pkt = build_packet(pkt, instrs, stk)
 
     pkt[2].show()
     sys.stdout.flush() 
@@ -54,7 +52,6 @@ def main():
     addr = socket.gethostbyname(sys.argv[1])
     pname = sys.argv[2]
     send_pkt(addr, pname)
-
 
 if __name__ == '__main__':
     main()

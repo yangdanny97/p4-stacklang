@@ -99,7 +99,7 @@ header ipv4_t {
 }
 
 struct metadata {
-    instr_t current_instr;
+    
 }
 
 struct headers {
@@ -693,6 +693,9 @@ control MyIngress(inout headers hdr,
         } else 
         if (code == 32w5) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.deq_qdepth;
+        } else 
+        if (code == 32w6) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_spec;
         } else {
             hdr.pdata.curr_instr_arg = 32w0;
         }

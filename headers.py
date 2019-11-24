@@ -64,42 +64,13 @@ class Instruction(Packet):
     ]
 
 class Stack(Packet):
-    name = 'stack'
+    name = 'Stack'
     fields_desc = [
-        IntField('i0', 0),
-        IntField('i1', 0),
-        IntField('i2', 0),
-        IntField('i3', 0),
-        IntField('i4', 0),
-        IntField('i5', 0),
-        IntField('i6', 0),
-        IntField('i7', 0),
-        IntField('i8', 0),
-        IntField('i9', 0),
-        IntField('i10', 0),
-        IntField('i11', 0),
-        IntField('i12', 0),
-        IntField('i13', 0),
-        IntField('i14', 0),
-        IntField('i15', 0),
-        IntField('i16', 0),
-        IntField('i17', 0),
-        IntField('i18', 0),
-        IntField('i19', 0),
-        IntField('i20', 0),
-        IntField('i21', 0),
-        IntField('i22', 0),
-        IntField('i23', 0),
-        IntField('i24', 0),
-        IntField('i25', 0),
-        IntField('i26', 0),
-        IntField('i27', 0),
-        IntField('i28', 0),
-        IntField('i29', 0),
-        IntField('i30', 0),
-        IntField('i31', 0),
-        IntField('i32', 0),
+        IntField('value', 0),
     ]
+
+def STACK(val = 0):
+    return Stack(value = val)
 
 # instruction factories
 
@@ -229,13 +200,14 @@ v1model:
 3 packet_length;
 4 enq_qdepth;
 5 deq_qdepth;
+6 egresss_spec;
 '''
 def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)
 
 # building a packet by putting the headers in the right order
-def build_packet(pkt, instrs):
-    pkt /= Pdata()
+def build_packet(pkt, instrs, init_stack = []):
+    pkt /= Pdata(sp = len(init_stack))
     assert len(instrs) < MAX_INSTRS
     for insn in instrs:
         pkt /= insn
@@ -244,7 +216,13 @@ def build_packet(pkt, instrs):
     while padding > 0:
         pkt /= ERROR()
         padding -=1
-    pkt /= Stack()
+    # initialize the stack
+    for stk in init_stack:
+        pkt /= stk
+    padding = STACK_SIZE - len(init_stack)
+    while padding > 0:
+        pkt /= STACK()
+        padding -=1
     return pkt
 
 bind_layers(IP, Pdata, proto=PROTOCOL_NUM)
