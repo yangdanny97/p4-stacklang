@@ -7,7 +7,7 @@ import struct
 from headers import *
 from test_programs import *
 
-from scapy.all import sendp, send, get_if_list, get_if_hwaddr
+from scapy.all import srp1, send, get_if_list, get_if_hwaddr
 from scapy.all import Packet
 from scapy.all import Ether, IP, UDP, TCP
 
@@ -32,7 +32,12 @@ def get_program(pname):
     else:
         return programs[pname]
 
-def send_pkt(addr, pname):
+def handle_pkt(pkt):
+    print "received response:"
+    pkt[2].show()
+    sys.stdout.flush()
+
+def send_probe(addr, pname):   
     iface = get_if()
 
     print "sending on interface %s to %s" % (iface, str(addr))
@@ -44,17 +49,17 @@ def send_pkt(addr, pname):
 
     pkt[2].show()
     sys.stdout.flush() 
-    sendp(pkt, iface=iface, verbose=False)
+    pkt = srp1(pkt, iface=iface, verbose=False)
+    handle_pkt(pkt)
 
 def main():
     if len(sys.argv) < 2:
-        print "usage: ./send.py <destination> <program name>"
+        print "usage: ./probe.py <source> <program name>"
         print ("valid program names: " + ", ".join(programs.keys()))
 
     addr = socket.gethostbyname(sys.argv[1])
     pname = sys.argv[2]
-    send_pkt(addr, pname)
-
+    send_probe(addr, pname)
 
 if __name__ == '__main__':
     main()
