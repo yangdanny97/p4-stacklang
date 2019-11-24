@@ -215,20 +215,15 @@ def STOREREG(r):
     return Instruction(opcode = i_storereg, arg = r)
 
 # push some standard metadata to top of stack (which one determined arg and hardware)
-# values are extended or truncated to fit int<32>
+# values are extended or truncated (keeping the LSB) to fit int<32>
 '''
 v1model:
 0 ingress_port;
-1 egress_spec;
-2 egress_port;
-3 instance_type;
-4 packet_length;
-5 enq_timestamp;
-6 enq_qdepth;
-7 deq_timedelta;
-8 deq_qdepth;
-9 ingress_global_timestamp;
-10 egress_global_timestamp;
+1 egress_port;
+2 instance_type;
+3 packet_length;
+4 enq_qdepth;
+5 deq_qdepth;
 '''
 def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)

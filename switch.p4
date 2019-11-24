@@ -417,6 +417,30 @@ control MyIngress(inout headers hdr,
         increment_pc();
     }
 
+    action instr_sal() {
+        int<32> l;
+        int<32> r;
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
+        idrop();
+        idrop();
+        hdr.pdata.curr_instr_arg = l << (bit<32>) r;
+        ipush();
+        increment_pc();
+    }
+
+    action instr_sar() {
+        int<32> l;
+        int<32> r;
+        stack.read(l, hdr.pdata.sp - 32w1);
+        stack.read(r, hdr.pdata.sp - 32w2);
+        idrop();
+        idrop();
+        hdr.pdata.curr_instr_arg = l >> (bit<32>) r;
+        ipush();
+        increment_pc();
+    }
+
     action instr_reset() {
         hdr.pdata.sp = 32w0;
         increment_pc();
@@ -633,6 +657,31 @@ control MyIngress(inout headers hdr,
         swregs.write(reg, top);
         idrop();
         increment_pc();
+    }
+
+    action instr_metadata() {
+        // this is specific to v1model
+        int<32> code = hdr.pdata.curr_instr_arg;
+        if (code == 32w0) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.ingress_port;
+        } else 
+        if (code == 32w1) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_port;
+        } else 
+        if (code == 32w2) {
+            hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.instance_type;
+        } else 
+        if (code == 32w3) {
+            hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.packet_length;
+        } else 
+        if (code == 32w4) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.enq_qdepth;
+        } else 
+        if (code == 32w5) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.deq_qdepth;
+        } else {
+            hdr.pdata.curr_instr_arg = 32w0;
+        }
     }
 
     action drop() {
