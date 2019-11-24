@@ -46,6 +46,7 @@ const bit<8> i_storereg = 0x1B;
 const bit<8> i_metadata = 0x1C;
 const bit<8> i_sal = 0x1D;
 const bit<8> i_sar = 0x1E;
+const bit<8> i_not = 0x1F;
 
 header instr_t {
     bit<8> opcode;
@@ -417,6 +418,19 @@ control MyIngress(inout headers hdr,
         increment_pc();
     }
 
+    action instr_not() {
+        int<32> top;
+        stack.read(top, hdr.pdata.sp - 32w1);
+        idrop();
+        if (top > 32w0) then {
+            hdr.pdata.curr_instr_arg = 32w0;
+        } else {
+            hdr.pdata.curr_instr_arg = 32w1;
+        }
+        ipush();
+        increment_pc();
+    }
+
     action instr_sal() {
         int<32> l;
         int<32> r;
@@ -752,7 +766,10 @@ control MyIngress(inout headers hdr,
             instr_nop;
             instr_loadreg;
             instr_storereg;
-            // TODO metadata, sal, sar
+            instr_metadata;
+            instr_sal;
+            instr_sar;
+            instr_not;
         }
         size = 1024;
         default_action = instr_error();

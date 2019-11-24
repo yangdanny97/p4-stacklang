@@ -35,6 +35,7 @@ i_storereg = 0x1B
 i_metadata = 0x1C
 i_sal = 0x1D
 i_sar = 0x1E
+i_not = 0x1F
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -137,6 +138,10 @@ def SAR():
 # negate top of stack
 def NEG():
     return Instruction(opcode = i_neg, arg = 0)
+
+# unary not
+def NOT():
+    return Instruction(opcode = i_not, arg = 0)
 
 # resets SP to 0
 def RESET():

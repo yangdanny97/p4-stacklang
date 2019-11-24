@@ -45,9 +45,10 @@ instrs = [
 (i_nop, "instr_nop"),
 (i_loadreg, "instr_loadreg"),
 (i_storereg, "instr_storereg"),
-# (i_metadata, "instr_metadata"),
-# (i_sal, "instr_sal"),
-# (i_sar, "instr_sar"),
+(i_metadata, "instr_metadata"),
+(i_sal, "instr_sal"),
+(i_sar, "instr_sar"),
+(i_not, "instr_not")
 ]
 
 def addForwardingRule(switch, dst_ip_addr, dst_port):
