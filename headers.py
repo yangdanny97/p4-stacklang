@@ -37,6 +37,7 @@ i_sal = 0x1D
 i_sar = 0x1E
 i_not = 0x1F
 i_setegress = 0x20
+i_setresult = 0x21
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -171,9 +172,13 @@ def JUMP(pc):
 def CJUMP(pc):
     return Instruction(opcode = i_cjump, arg = pc)
 
-# mark done and return top of stack
+# mark done
 def DONE():
     return Instruction(opcode = i_done, arg = 0)
+
+# return top of stack
+def SETRESULT():
+    return Instruction(opcode = i_setresult, arg = 0)
 
 # no-op
 def NOP():

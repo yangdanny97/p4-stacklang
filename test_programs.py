@@ -3,6 +3,7 @@ from headers import *
 def test_basic():
     return ([
         PUSH(10),
+        SETRESULT(),
         DONE()
     ], [])
 
@@ -16,36 +17,43 @@ def test_error():
 # should return 1
 def test_swap():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(2),
         SWAP(),
+        SETRESULT(),
         DONE()
     ], [])
 
 # should return 3
 def test_add():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(2),
         ADD(),
+        SETRESULT(),
         DONE()
     ], [])
 
 # should return 4
 def test_load():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(2),
         PUSH(3),
         LOAD(1),
         LOAD(1),
         ADD(),
+        SETRESULT(),
         DONE()
     ], [])
 
 # should return 2
 def test_load_store():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(0),
         PUSH(0),
@@ -54,12 +62,14 @@ def test_load_store():
         ADD(),
         STORE(1),
         LOAD(1),
+        SETRESULT(),
         DONE()
     ], [])
 
 # should return 5
 def test_fib():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(1),
         SWAP(),
@@ -71,12 +81,14 @@ def test_fib():
         SWAP(),
         OVER(),
         ADD(),
+        SETRESULT(),
         DONE(),
     ], [])
 
 # should return 5
 def test_fib2():
     return ([
+        RESET(),
         PUSH(1),
         PUSH(1),
         DUP(),
@@ -88,15 +100,18 @@ def test_fib2():
         DUP(),
         ROT(),
         ADD(),
+        SETRESULT(),
         DONE(),
     ], [])
 
 # should return 1
 def test_sub():
     return ([
+        RESET(),
         PUSH(2),
         PUSH(3),
         SUB(),
+        SETRESULT(),
         DONE(),
     ], [])
 
@@ -113,6 +128,7 @@ def test_if():
         NOP(),
         PUSH(7),
         NOP(),
+        SETRESULT(),
         DONE(),
     ], [])
 
@@ -129,6 +145,7 @@ def test_if2():
         NOP(),
         PUSH(7),
         NOP(),
+        SETRESULT(),
         DONE(),
     ], [])
 
@@ -152,6 +169,7 @@ def test_fib_n(n = 10):
         STORE(0),
         JUMP(4), # jump to the first NOP
         NOP(),
+        SETRESULT(),
         DONE()
     ], [])
 
@@ -175,6 +193,7 @@ def test_fact(n = 5):
         STORE(0),
         JUMP(3), # jump to first NOP
         NOP(),
+        SETRESULT(),
         DONE()
     ], [])
 
@@ -201,6 +220,7 @@ def test_fact_regs(n = 5):
         JUMP(5), # jump to first NOP
         NOP(),
         LOADREG(1),
+        SETRESULT(),
         DONE()
     ], [])
 
@@ -247,11 +267,39 @@ def test_counter():
         DONE()
     ], [])
 
-def test_read_counters():
+# return minimum counter value along path
+def test_min_counter():
     return ([
+        LOAD(0),
         LOADREG(0),
+        GTE(),
+        CJUMP(6),
+        LOADREG(0), # if counter < min, set min
+        STORE(0),
+        NOP(),
+        LOAD(0),
+        SETRESULT(),
         DONE()
-    ], [])
+    ], [
+        STACK(100),
+    ])
+
+# return maximum counter value along path
+def test_max_counter():
+    return ([
+        LOAD(0),
+        LOADREG(0),
+        LTE(),
+        CJUMP(6),
+        LOADREG(0), # if counter > max, set max
+        STORE(0),
+        NOP(),
+        LOAD(0),
+        SETRESULT(),
+        DONE()
+    ], [
+        STACK(0),
+    ])
 
 # read the packets-received counter for switches along the path
 # return difference between minimum and maximum counter values
@@ -275,10 +323,10 @@ def test_counter_diffs():
         LOAD(1),
         SUB(),
         STORE(2),
-        DUP(),
+        LOAD(2),
         DONE() # done pops the top value so we have to dup
     ], [
-        STACK(0), # min count
+        STACK(100), # min count
         STACK(0), # max count
         STACK(0) # diff
     ])
@@ -300,7 +348,8 @@ programs = {
     "source_routing": test_source_routing(),
     "source_routing2": test_source_routing2(),
     "drop": test_drop(),
-    "counter": test_counter(),
-    "read_counters": test_read_counters(),
-    "diff_counters": test_counter_diffs(),
+    "inc_counter": test_counter(),
+    "min_counter": test_min_counter(),
+    "max_counter": test_max_counter(),
+    "diff_counter": test_counter_diffs(),
 }

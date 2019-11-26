@@ -48,6 +48,7 @@ const bit<8> i_sal = 0x1D;
 const bit<8> i_sar = 0x1E;
 const bit<8> i_not = 0x1F;
 const bit<8> i_setegress = 0x20;
+const bit<8> i_setresult = 0x21;
 
 header instr_t {
     bit<8> opcode;
@@ -647,6 +648,9 @@ control MyIngress(inout headers hdr,
 
     action instr_done() {
         hdr.pdata.done_flg = 1w1;
+    }
+
+    action instr_setresult() {
         stack.read(hdr.pdata.result, hdr.pdata.sp - 32w1);
         idrop();
     }
@@ -768,6 +772,7 @@ control MyIngress(inout headers hdr,
             instr_sar;
             instr_not;
             instr_setegress;
+            instr_setresult;
         }
         size = 1024;
         default_action = instr_error();
