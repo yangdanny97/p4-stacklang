@@ -198,6 +198,35 @@ def test_fact_regs(n = 5):
         DONE()
     ], [])
 
+# this test needs to be sent from h1, ends up at h2
+def test_source_routing():
+    return ([
+        SETEGRESS(),
+    ], [
+        STACK(1),
+        STACK(2),
+    ])
+
+# this test needs to be sent from h1, ends up at h2
+def test_source_routing2():
+    return ([
+        SETEGRESS(),
+    ], [
+        STACK(1),
+        STACK(2),
+        STACK(2),
+        STACK(3),
+        STACK(2),
+    ])
+
+# mark to drop
+def test_drop():
+    return ([
+        SETEGRESS(),
+    ], [
+        STACK(511),
+    ])
+
 programs = {
     "basic": test_basic(),
     "error": test_error(),
@@ -210,5 +239,9 @@ programs = {
     "sub": test_sub(),
     "if": test_if(),
     "if2": test_if2(),
-    "fact": test_fact()
+    "fact": test_fact(),
+    "fact_regs": test_fact_regs(),
+    "source_routing": test_source_routing(),
+    "source_routing2": test_source_routing2(),
+    "drop": test_drop(),
 }

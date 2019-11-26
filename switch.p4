@@ -47,6 +47,7 @@ const bit<8> i_metadata = 0x1C;
 const bit<8> i_sal = 0x1D;
 const bit<8> i_sar = 0x1E;
 const bit<8> i_not = 0x1F;
+const bit<8> i_setegress = 0x20;
 
 header instr_t {
     bit<8> opcode;
@@ -678,27 +679,32 @@ control MyIngress(inout headers hdr,
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 32w0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.ingress_port;
-        } else 
+        } else
         if (code == 32w1) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_port;
-        } else 
-        if (code == 32w2) {
-            hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.instance_type;
-        } else 
-        if (code == 32w3) {
             hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.packet_length;
         } else 
-        if (code == 32w4) {
+        if (code == 32w2) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.enq_qdepth;
         } else 
-        if (code == 32w5) {
+        if (code == 32w3) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.deq_qdepth;
         } else 
-        if (code == 32w6) {
+        if (code == 32w4) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_spec;
         } else {
             hdr.pdata.curr_instr_arg = 32w0;
         }
+    }
+
+    action instr_setegress() {
+        // this is specific to v1model
+        int<32> top;
+        stack.read(top, hdr.pdata.sp - 32w1);
+        idrop();
+        standard_metadata.egress_spec = (bit<9>) (bit<32>) top;
+        hdr.pdata.steps = 32w0;
+        hdr.pdata.done_flg = 1w0;
+        hdr.pdata.PC = 32w0;
     }
 
     action drop() {
@@ -707,7 +713,6 @@ control MyIngress(inout headers hdr,
     
     action ipv4_forward(egressSpec_t port) {
         standard_metadata.egress_spec = port;
-        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
 
     table ipv4_lpm {
@@ -773,26 +778,28 @@ control MyIngress(inout headers hdr,
             instr_sal;
             instr_sar;
             instr_not;
+            instr_setegress;
         }
         size = 1024;
         default_action = instr_error();
     }
 
     apply {
+        ipv4_lpm.apply();
         if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1 || hdr.pdata.steps > MAX_STEPS) {
             // reset steps, done flag, PC
             hdr.pdata.steps = 32w0;
             hdr.pdata.done_flg = 1w0;
             hdr.pdata.PC = 32w0;
-            ipv4_lpm.apply();
         } else {
+            // forward to self
+            standard_metadata.egress_spec = (bit<9>) 9w4;
             parse_instructions();
             parse_stack();
             read_current_instr();
             instruction_table.apply();
             increment_steps();
             deparse_stack();
-            ipv4_self_fwd.apply();
         }
     }
 }

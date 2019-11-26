@@ -36,6 +36,7 @@ i_metadata = 0x1C
 i_sal = 0x1D
 i_sar = 0x1E
 i_not = 0x1F
+i_setegress = 0x20
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -195,15 +196,17 @@ def STOREREG(r):
 '''
 v1model:
 0 ingress_port;
-1 egress_port;
-2 instance_type;
-3 packet_length;
-4 enq_qdepth;
-5 deq_qdepth;
-6 egresss_spec;
+1 packet_length;
+2 enq_qdepth;
+3 deq_qdepth;
+4 egresss_spec;
 '''
 def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)
+
+# write top of stack to egress port, this is also v1model-specific
+def SETEGRESS(r):
+    return Instruction(opcode = i_setegress, arg = r)
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs, init_stack = []):

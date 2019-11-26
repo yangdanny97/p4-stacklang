@@ -48,7 +48,8 @@ instrs = [
 (i_metadata, "instr_metadata"),
 (i_sal, "instr_sal"),
 (i_sar, "instr_sar"),
-(i_not, "instr_not")
+(i_not, "instr_not"),
+(i_setegress, "instr_setegress")
 ]
 
 def addForwardingRule(switch, dst_ip_addr, dst_port):
@@ -66,20 +67,20 @@ def addForwardingRule(switch, dst_ip_addr, dst_port):
     bmv2_switch.WriteTableEntry(table_entry)
     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
 
-def addSelfForwardingRule(switch, dst_ip_addr, dst_port):
-    # Helper function to install forwarding rules
-    table_entry = p4info_helper.buildTableEntry(
-        table_name="MyIngress.ipv4_self_fwd",
-        match_fields={
-            "hdr.ipv4.dstAddr": (dst_ip_addr, 32)
-        },
-        action_name="MyIngress.ipv4_forward",
-        action_params={
-            "port": dst_port,
-        })
-    bmv2_switch = switches[switch]
-    bmv2_switch.WriteTableEntry(table_entry)
-    print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
+# def addSelfForwardingRule(switch, dst_ip_addr, dst_port):
+#     # Helper function to install forwarding rules
+#     table_entry = p4info_helper.buildTableEntry(
+#         table_name="MyIngress.ipv4_self_fwd",
+#         match_fields={
+#             "hdr.ipv4.dstAddr": (dst_ip_addr, 32)
+#         },
+#         action_name="MyIngress.ipv4_forward",
+#         action_params={
+#             "port": dst_port,
+#         })
+#     bmv2_switch = switches[switch]
+#     bmv2_switch.WriteTableEntry(table_entry)
+#     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
 
 def addInstrRule(switch, opcode, action):
     # Helper function to install forwarding rules
@@ -125,15 +126,15 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
         addForwardingRule("s3","10.0.2.22",3)
         addForwardingRule("s3","10.0.1.11",2)
 
-        addSelfForwardingRule("s1","10.0.3.33",4)
-        addSelfForwardingRule("s1","10.0.2.22",4)
-        addSelfForwardingRule("s1","10.0.1.11",4)
-        addSelfForwardingRule("s2","10.0.3.33",4)
-        addSelfForwardingRule("s2","10.0.2.22",4)
-        addSelfForwardingRule("s2","10.0.1.11",4)
-        addSelfForwardingRule("s3","10.0.3.33",4)
-        addSelfForwardingRule("s3","10.0.2.22",4)
-        addSelfForwardingRule("s3","10.0.1.11",4)
+        # addSelfForwardingRule("s1","10.0.3.33",4)
+        # addSelfForwardingRule("s1","10.0.2.22",4)
+        # addSelfForwardingRule("s1","10.0.1.11",4)
+        # addSelfForwardingRule("s2","10.0.3.33",4)
+        # addSelfForwardingRule("s2","10.0.2.22",4)
+        # addSelfForwardingRule("s2","10.0.1.11",4)
+        # addSelfForwardingRule("s3","10.0.3.33",4)
+        # addSelfForwardingRule("s3","10.0.2.22",4)
+        # addSelfForwardingRule("s3","10.0.1.11",4)
 
         for i in instrs:
             opcode, action = i
