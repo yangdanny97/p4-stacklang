@@ -421,12 +421,12 @@ control MyIngress(inout headers hdr,
 
     action instr_not() {
         int<32> top;
-        stack.read(top, hdr.pdata.sp - 32w1);
+        stack.read(top, hdr.pdata.sp - 1);
         idrop();
-        if (top > 32w0) then {
-            hdr.pdata.curr_instr_arg = 32w0;
+        if (top > 0) {
+            hdr.pdata.curr_instr_arg = 0;
         } else {
-            hdr.pdata.curr_instr_arg = 32w1;
+            hdr.pdata.curr_instr_arg = 1;
         }
         ipush();
         increment_pc();
@@ -439,7 +439,7 @@ control MyIngress(inout headers hdr,
         stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
-        hdr.pdata.curr_instr_arg = l << (bit<32>) r;
+        hdr.pdata.curr_instr_arg = l << (bit<8>) (bit<32>) r;
         ipush();
         increment_pc();
     }
@@ -451,7 +451,7 @@ control MyIngress(inout headers hdr,
         stack.read(r, hdr.pdata.sp - 32w2);
         idrop();
         idrop();
-        hdr.pdata.curr_instr_arg = l >> (bit<32>) r;
+        hdr.pdata.curr_instr_arg = l >> (bit<8>) (bit<32>) r;
         ipush();
         increment_pc();
     }
@@ -648,6 +648,7 @@ control MyIngress(inout headers hdr,
     action instr_done() {
         hdr.pdata.done_flg = 1w1;
         stack.read(hdr.pdata.result, hdr.pdata.sp - 32w1);
+        idrop();
     }
 
     action instr_error() {
@@ -677,23 +678,25 @@ control MyIngress(inout headers hdr,
     action instr_metadata() {
         // this is specific to v1model
         int<32> code = hdr.pdata.curr_instr_arg;
-        if (code == 32w0) {
+        if (code == 0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.ingress_port;
         } else
-        if (code == 32w1) {
+        if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.packet_length;
         } else 
-        if (code == 32w2) {
+        if (code == 2) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.enq_qdepth;
         } else 
-        if (code == 32w3) {
+        if (code == 3) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.deq_qdepth;
         } else 
-        if (code == 32w4) {
+        if (code == 4) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_spec;
         } else {
-            hdr.pdata.curr_instr_arg = 32w0;
+            hdr.pdata.curr_instr_arg = 0;
         }
+        ipush();
+        increment_pc();
     }
 
     action instr_setegress() {
@@ -703,8 +706,7 @@ control MyIngress(inout headers hdr,
         idrop();
         standard_metadata.egress_spec = (bit<9>) (bit<32>) top;
         hdr.pdata.steps = 32w0;
-        hdr.pdata.done_flg = 1w0;
-        hdr.pdata.PC = 32w0;
+        hdr.pdata.pc = 32w0;
     }
 
     action drop() {
@@ -716,19 +718,6 @@ control MyIngress(inout headers hdr,
     }
 
     table ipv4_lpm {
-        key = {
-            hdr.ipv4.dstAddr: lpm;
-        }
-        actions = {
-            ipv4_forward;
-            drop;
-            NoAction;
-        }
-        size = 1024;
-        default_action = NoAction();
-    }
-
-    table ipv4_self_fwd {
         key = {
             hdr.ipv4.dstAddr: lpm;
         }
@@ -785,15 +774,15 @@ control MyIngress(inout headers hdr,
     }
 
     apply {
-        ipv4_lpm.apply();
         if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1 || hdr.pdata.steps > MAX_STEPS) {
-            // reset steps, done flag, PC
+            // reset steps, done flag, pc
+            ipv4_lpm.apply();
             hdr.pdata.steps = 32w0;
             hdr.pdata.done_flg = 1w0;
-            hdr.pdata.PC = 32w0;
+            hdr.pdata.pc = 32w0;
         } else {
             // forward to self
-            standard_metadata.egress_spec = (bit<9>) 9w4;
+            standard_metadata.egress_spec = 9w4;
             parse_instructions();
             parse_stack();
             read_current_instr();

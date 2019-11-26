@@ -48,6 +48,7 @@ def main():
     if len(sys.argv) < 2:
         print "usage: ./send.py <destination> <program name>"
         print ("valid program names: " + ", ".join(programs.keys()))
+        return
 
     addr = socket.gethostbyname(sys.argv[1])
     pname = sys.argv[2]

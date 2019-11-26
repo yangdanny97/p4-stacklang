@@ -103,12 +103,13 @@ def test_sub():
 # should return 7
 def test_if():
     return ([
+        RESET(),
         PUSH(2),
         PUSH(3),
         GTE(),
-        CJUMP(6),
+        CJUMP(7),
         PUSH(5),
-        JUMP(8),
+        JUMP(9),
         NOP(),
         PUSH(7),
         NOP(),
@@ -118,12 +119,13 @@ def test_if():
 # should return 5
 def test_if2():
     return ([
+        RESET(),
         PUSH(2),
         PUSH(1),
         GTE(),
-        CJUMP(6),
+        CJUMP(7),
         PUSH(5),
-        JUMP(8),
+        JUMP(9),
         NOP(),
         PUSH(7),
         NOP(),
@@ -132,6 +134,7 @@ def test_if2():
 
 def test_fib_n(n = 10):
     return ([
+        RESET(),
         PUSH(n - 2), # space reserved for n
         PUSH(1),
         PUSH(1),
@@ -139,7 +142,7 @@ def test_fib_n(n = 10):
         PUSH(0), # if n <= 0 then jump to end
         LOAD(0),
         LTE(),
-        CJUMP(16),
+        CJUMP(17),
         DUP(),
         ROT(),
         ADD(),
@@ -147,20 +150,21 @@ def test_fib_n(n = 10):
         LOAD(0),
         SUB(),
         STORE(0),
-        JUMP(3), # jump to the first NOP
+        JUMP(4), # jump to the first NOP
         NOP(),
         DONE()
     ], [])
 
 def test_fact(n = 5):
     return ([
+        RESET(),
         PUSH(n), # current number
         PUSH(1), # result
         NOP(),
         PUSH(1), # if n <= 1 then jump to end
         LOAD(0),
         LTE(),
-        CJUMP(16),
+        CJUMP(17),
         LOAD(0), # multiply current number with result and store it
         LOAD(1),
         MUL(),
@@ -169,13 +173,14 @@ def test_fact(n = 5):
         LOAD(0),
         SUB(),
         STORE(0),
-        JUMP(2), # jump to first NOP
+        JUMP(3), # jump to first NOP
         NOP(),
         DONE()
     ], [])
 
 def test_fact_regs(n = 5):
     return ([
+        RESET(),
         PUSH(n), # current number
         STOREREG(0),
         PUSH(1), # result
@@ -184,7 +189,7 @@ def test_fact_regs(n = 5):
         PUSH(1), # if n <= 1 then jump to end
         LOADREG(0),
         LTE(),
-        CJUMP(18),
+        CJUMP(19),
         LOADREG(0), # multiply current number with result and store it
         LOADREG(1),
         MUL(),
@@ -193,8 +198,9 @@ def test_fact_regs(n = 5):
         LOADREG(0),
         SUB(),
         STOREREG(0),
-        JUMP(4), # jump to first NOP
+        JUMP(5), # jump to first NOP
         NOP(),
+        LOADREG(1),
         DONE()
     ], [])
 
@@ -219,12 +225,62 @@ def test_source_routing2():
         STACK(2),
     ])
 
-# mark to drop
+# when switch receives packet, increment counter and drop
 def test_drop():
     return ([
+        PUSH(1),
+        LOADREG(0),
+        ADD(),
+        STOREREG(0),
         SETEGRESS(),
     ], [
         STACK(511),
+    ])
+
+# when switch receives packet, increment counter
+def test_counter():
+    return ([
+        PUSH(1),
+        LOADREG(0),
+        ADD(),
+        STOREREG(0),
+        DONE()
+    ], [])
+
+def test_read_counters():
+    return ([
+        LOADREG(0),
+        DONE()
+    ], [])
+
+# read the packets-received counter for switches along the path
+# return difference between minimum and maximum counter values
+def test_counter_diffs():
+    return ([
+        LOAD(0),
+        LOADREG(0),
+        LTE(),
+        CJUMP(6),
+        LOADREG(0), # if counter > max, set max
+        STORE(1),
+        NOP(),
+        LOAD(1),
+        LOADREG(0),
+        GTE(),
+        CJUMP(13),
+        LOADREG(0), # if counter < min, set min
+        STORE(0),
+        NOP(),
+        LOAD(0),
+        LOAD(1),
+        SUB(),
+        STORE(2),
+        DUP(),
+        DONE() # done pops the top value so we have to dup
+    ], [
+        STACK(0), # min count
+        STACK(0), # max count
+        STACK(0) # diff
     ])
 
 programs = {
@@ -244,4 +300,7 @@ programs = {
     "source_routing": test_source_routing(),
     "source_routing2": test_source_routing2(),
     "drop": test_drop(),
+    "counter": test_counter(),
+    "read_counters": test_read_counters(),
+    "diff_counters": test_counter_diffs(),
 }

@@ -205,8 +205,8 @@ def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)
 
 # write top of stack to egress port, this is also v1model-specific
-def SETEGRESS(r):
-    return Instruction(opcode = i_setegress, arg = r)
+def SETEGRESS():
+    return Instruction(opcode = i_setegress)
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs, init_stack = []):
