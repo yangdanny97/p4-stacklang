@@ -38,6 +38,52 @@ i_sar = 0x1E
 i_not = 0x1F
 i_setegress = 0x20
 i_setresult = 0x21
+i_varload = 0x22
+i_varstore = 0x23
+i_varloadreg = 0x24
+i_varstorereg = 0x25
+
+# used by the controller to add rules
+instrs = [
+(i_load, "instr_load"),
+(i_store, "instr_store"),
+(i_push, "instr_push"),
+(i_drop, "instr_drop"),
+(i_add, "instr_add"),
+(i_mul, "instr_mul"),
+(i_sub, "instr_sub"),
+(i_neg, "instr_sub"),
+(i_reset, "instr_reset"),
+(i_and, "instr_and"),
+(i_or, "instr_or"),
+(i_gt, "instr_gt"),
+(i_lt, "instr_lt"),
+(i_lte, "instr_lte"),
+(i_gte, "instr_gte"),
+(i_eq, "instr_eq"),
+(i_neq, "instr_neq"),
+(i_dup, "instr_dup"),
+(i_swap, "instr_swap"),
+(i_over, "instr_over"),
+(i_rot, "instr_rot"),
+(i_jump, "instr_jump"),
+(i_cjump, "instr_cjump"),
+(i_done, "instr_done"),
+(i_error, "instr_error"),
+(i_nop, "instr_nop"),
+(i_loadreg, "instr_loadreg"),
+(i_storereg, "instr_storereg"),
+(i_metadata, "instr_metadata"),
+(i_sal, "instr_sal"),
+(i_sar, "instr_sar"),
+(i_not, "instr_not"),
+(i_setegress, "instr_setegress"),
+(i_setresult, "instr_setresult"),
+(i_varload, "instr_varload"),
+(i_varstore, "instr_varstore"),
+(i_varloadreg, "instr_varloadreg"),
+(i_varstorereg, "instr_varstorereg"),
+]
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 250
@@ -83,6 +129,12 @@ def LOAD(pos):
 # copy top of stack to offset [pos] from bottom of stack
 def STORE(pos):
     return Instruction(opcode = i_store, arg = pos)
+
+def VARLOAD():
+    return Instruction(opcode = i_varload, arg = 0)
+
+def VARSTORE():
+    return Instruction(opcode = i_varstore, arg = 0)
 
 # push a value to top of stack
 def PUSH(val):
@@ -195,6 +247,12 @@ def LOADREG(r):
 # store top of stack to register [r]
 def STOREREG(r):
     return Instruction(opcode = i_storereg, arg = r)
+
+def VARLOADREG():
+    return Instruction(opcode = i_varloadreg, arg = 0)
+
+def VARSTOREREG():
+    return Instruction(opcode = i_varstorereg, arg = 0)
 
 # push some standard metadata to top of stack (which one determined arg and hardware)
 # values are extended or truncated (keeping the LSB) to fit int<32>

@@ -15,21 +15,6 @@ import p4runtime_lib.helper
 switches = {}
 p4info_helper = None
 
-def addForwardingRule(switch, dst_ip_addr, dst_port):
-    # Helper function to install forwarding rules
-    table_entry = p4info_helper.buildTableEntry(
-        table_name="MyIngress.ipv4_lpm",
-        match_fields={
-            "hdr.ipv4.dstAddr": (dst_ip_addr, 32)
-        },
-        action_name="MyIngress.ipv4_forward",
-        action_params={
-            "port": dst_port,
-        })
-    bmv2_switch = switches[switch]
-    bmv2_switch.WriteTableEntry(table_entry)
-    print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
-
 def addInstrRule(switch, opcode, action):
     # Helper function to install forwarding rules
     table_entry = p4info_helper.buildTableEntry(
@@ -63,16 +48,6 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
                                                     bmv2_json_file_path=bmv2_file_path)
             print "Installed P4 Program using SetForwardingPipelineConfig on %s" % bmv2_switch.name
             switches[switch] = bmv2_switch
-            
-        addForwardingRule("s1","10.0.3.33",3)
-        addForwardingRule("s1","10.0.2.22",2)
-        addForwardingRule("s1","10.0.1.11",1)
-        addForwardingRule("s2","10.0.3.33",3)
-        addForwardingRule("s2","10.0.2.22",1)
-        addForwardingRule("s2","10.0.1.11",2)
-        addForwardingRule("s3","10.0.3.33",1)
-        addForwardingRule("s3","10.0.2.22",3)
-        addForwardingRule("s3","10.0.1.11",2)
 
         for i in instrs:
             opcode, action = i

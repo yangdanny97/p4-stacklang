@@ -49,6 +49,10 @@ const bit<8> i_sar = 0x1E;
 const bit<8> i_not = 0x1F;
 const bit<8> i_setegress = 0x20;
 const bit<8> i_setresult = 0x21;
+const bit<8> i_varload = 0x22;
+const bit<8> i_varstore = 0x23;
+const bit<8> i_varloadreg = 0x24;
+const bit<8> i_varstorereg = 0x25;
 
 header instr_t {
     bit<8> opcode;
@@ -679,6 +683,46 @@ control MyIngress(inout headers hdr,
         increment_pc();
     }
 
+    action instr_varload() {
+        int<32> offset;
+        stack.read(offset, hdr.pdata.sp - 32w1);
+        idrop();
+        stack.read(hdr.pdata.curr_instr_arg, (bit<32>) offset);
+        ipush();
+        increment_pc();
+    }
+
+    action instr_varloadreg() {
+        int<32> reg;
+        stack.read(reg, hdr.pdata.sp - 32w1);
+        idrop();
+        swregs.read(hdr.pdata.curr_instr_arg, (bit<32>) reg);
+        ipush();
+        increment_pc();
+    }
+
+    action instr_varstorereg() {
+        int<32> reg;
+        int<32> val;
+        stack.read(reg, hdr.pdata.sp - 32w1);
+        stack.read(val, hdr.pdata.sp - 32w2);
+        idrop();
+        idrop();
+        swregs.write((bit<32>) reg, val);
+        increment_pc();
+    }
+
+    action instr_varstore() {
+        int<32> offset;
+        int<32> val;
+        stack.read(offset, hdr.pdata.sp - 32w1);
+        stack.read(val, hdr.pdata.sp - 32w2);
+        idrop();
+        idrop();
+        stack.write((bit<32>) offset, val);
+        increment_pc();
+    }
+
     action instr_metadata() {
         // this is specific to v1model
         int<32> code = hdr.pdata.curr_instr_arg;
@@ -773,6 +817,10 @@ control MyIngress(inout headers hdr,
             instr_not;
             instr_setegress;
             instr_setresult;
+            instr_varload;
+            instr_varstore;
+            instr_varloadreg;
+            instr_varstorereg;
         }
         size = 1024;
         default_action = instr_error();

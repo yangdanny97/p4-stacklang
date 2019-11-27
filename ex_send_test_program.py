@@ -1,5 +1,11 @@
 from headers import *
+from sendutils import *
 
+# miscellaneous test programs
+
+"""
+BASIC TESTS
+"""
 def test_basic():
     return ([
         PUSH(10),
@@ -65,45 +71,6 @@ def test_load_store():
         SETRESULT(),
         DONE()
     ], [])
-
-# should return 5
-def test_fib():
-    return ([
-        RESET(),
-        PUSH(1),
-        PUSH(1),
-        SWAP(),
-        OVER(),
-        ADD(),
-        SWAP(),
-        OVER(),
-        ADD(),
-        SWAP(),
-        OVER(),
-        ADD(),
-        SETRESULT(),
-        DONE(),
-    ], [])
-
-# should return 5
-def test_fib2():
-    return ([
-        RESET(),
-        PUSH(1),
-        PUSH(1),
-        DUP(),
-        ROT(),
-        ADD(),
-        DUP(),
-        ROT(),
-        ADD(),
-        DUP(),
-        ROT(),
-        ADD(),
-        SETRESULT(),
-        DONE(),
-    ], [])
-
 # should return 1
 def test_sub():
     return ([
@@ -149,80 +116,51 @@ def test_if2():
         DONE(),
     ], [])
 
-def test_fib_n(n = 10):
+"""
+HARDCODED FIBONACCI
+"""
+
+# should return 5
+def test_fib():
     return ([
         RESET(),
-        PUSH(n - 2), # space reserved for n
         PUSH(1),
         PUSH(1),
-        NOP(),
-        PUSH(0), # if n <= 0 then jump to end
-        LOAD(0),
-        LTE(),
-        CJUMP(17),
+        SWAP(),
+        OVER(),
+        ADD(),
+        SWAP(),
+        OVER(),
+        ADD(),
+        SWAP(),
+        OVER(),
+        ADD(),
+        SETRESULT(),
+        DONE(),
+    ], [])
+
+# should return 5
+def test_fib2():
+    return ([
+        RESET(),
+        PUSH(1),
+        PUSH(1),
         DUP(),
         ROT(),
         ADD(),
-        PUSH(1), # subtract 1 from current number
-        LOAD(0),
-        SUB(),
-        STORE(0),
-        JUMP(4), # jump to the first NOP
-        NOP(),
+        DUP(),
+        ROT(),
+        ADD(),
+        DUP(),
+        ROT(),
+        ADD(),
         SETRESULT(),
-        DONE()
+        DONE(),
     ], [])
 
-def test_fact(n = 5):
-    return ([
-        RESET(),
-        PUSH(n), # current number
-        PUSH(1), # result
-        NOP(),
-        PUSH(1), # if n <= 1 then jump to end
-        LOAD(0),
-        LTE(),
-        CJUMP(17),
-        LOAD(0), # multiply current number with result and store it
-        LOAD(1),
-        MUL(),
-        STORE(1),
-        PUSH(1), # subtract 1 from current number
-        LOAD(0),
-        SUB(),
-        STORE(0),
-        JUMP(3), # jump to first NOP
-        NOP(),
-        SETRESULT(),
-        DONE()
-    ], [])
-
-def test_fact_regs(n = 5):
-    return ([
-        RESET(),
-        PUSH(n), # current number
-        STOREREG(0),
-        PUSH(1), # result
-        STOREREG(1),
-        NOP(),
-        PUSH(1), # if n <= 1 then jump to end
-        LOADREG(0),
-        LTE(),
-        CJUMP(19),
-        LOADREG(0), # multiply current number with result and store it
-        LOADREG(1),
-        MUL(),
-        STOREREG(1),
-        PUSH(1), # subtract 1 from current number
-        LOADREG(0),
-        SUB(),
-        STOREREG(0),
-        JUMP(5), # jump to first NOP
-        NOP(),
-        LOADREG(1),
-        SETRESULT(),
-        DONE()
-    ], [])
+"""
+HARDCODED SOURCE ROUTING TESTS
+"""
 
 # this test needs to be sent from h1, ends up at h2
 def test_source_routing():
@@ -337,19 +275,30 @@ programs = {
     "add": test_add(),
     "load": test_load(),
     "load_store": test_load_store(),
-    "fib": test_fib(),
-    "fib2": test_fib2(),
-    "fibn": test_fib_n(),
     "sub": test_sub(),
     "if": test_if(),
     "if2": test_if2(),
-    "fact": test_fact(),
-    "fact_regs": test_fact_regs(),
+    "fib": test_fib(),
+    "fib2": test_fib2(),
     "source_routing": test_source_routing(),
     "source_routing2": test_source_routing2(),
     "drop": test_drop(),
-    "inc_counter": test_counter(),
+    "counter": test_counter(),
     "min_counter": test_min_counter(),
     "max_counter": test_max_counter(),
     "diff_counter": test_counter_diffs(),
 }
+
+def main():
+    if len(sys.argv) < 3:
+        print "send some test program"
+        print "arguments: <destination> <program name>"
+        print "valid program names: " + ", ".join(programs.keys())
+
+    addr = socket.gethostbyname(sys.argv[1])
+    program_name = sys.argv[2]
+    instrs, stk = programs[program_name]
+    send_pkt(addr, instrs, stk)
+
+if __name__ == '__main__':
+    main()
