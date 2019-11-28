@@ -33,6 +33,7 @@ def test_table_setup():
 def main():
     print "set up registers in each switch for use as routing table"
     print "must be sent by h1"
+    print "arguments: none"
     addr = socket.gethostbyname("10.0.9.99")
     instrs, stk = test_source_routing(args)
     send_pkt(addr, instrs, stk)
