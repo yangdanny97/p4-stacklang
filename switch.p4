@@ -827,12 +827,16 @@ control MyIngress(inout headers hdr,
     }
 
     apply {
-        if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1 || hdr.pdata.steps > MAX_STEPS) {
-            // reset steps, done flag, pc
+        if (hdr.pdata.done_flg == 1w1) {
             ipv4_lpm.apply();
-            hdr.pdata.steps = 32w0;
             hdr.pdata.done_flg = 1w0;
             hdr.pdata.pc = 32w0;
+            hdr.pdata.steps = 32w0;
+        } else if (hdr.pdata.err_flg == 1w1) {
+            ipv4_lpm.apply();
+        } else if (hdr.pdata.steps > MAX_STEPS) {
+            hdr.pdata.error_flg = 1w1;
+            ipv4_lpm.apply();
         } else {
             // forward to self
             standard_metadata.egress_spec = 9w4;
