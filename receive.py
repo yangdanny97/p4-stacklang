@@ -22,21 +22,21 @@ def get_if():
         exit(1)
     return iface
 
-class IPOption_MRI(IPOption):
-    name = "MRI"
-    option = 31
-    fields_desc = [ _IPOption_HDR,
-                    FieldLenField("length", None, fmt="B",
-                                  length_of="swids",
-                                  adjust=lambda pkt,l:l+4),
-                    ShortField("count", 0),
-                    FieldListField("swids",
-                                   [],
-                                   IntField("", 0),
-                                   length_from=lambda pkt:pkt.count*4) ]
+# class IPOption_MRI(IPOption):
+#     name = "MRI"
+#     option = 31
+#     fields_desc = [ _IPOption_HDR,
+#                     FieldLenField("length", None, fmt="B",
+#                                   length_of="swids",
+#                                   adjust=lambda pkt,l:l+4),
+#                     ShortField("count", 0),
+#                     FieldListField("swids",
+#                                    [],
+#                                    IntField("", 0),
+#                                    length_from=lambda pkt:pkt.count*4) ]
 
 def handle_pkt(pkt):
-    print pkt[2].show(True)      
+    print pkt[3].show(True)      
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))

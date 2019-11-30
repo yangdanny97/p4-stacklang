@@ -63,6 +63,14 @@ header stack_t {
     int<32> value;
 }
 
+header metadata_t {
+    bit<9> ingress_port;
+    bit<32> packet_length;
+    bit<19> enq_qdepth;
+    bit<19> deq_qdepth;
+    bit<9> egress_spec;
+}
+
 header pdata_t {
     bit<32> pc; // program counter
     bit<32> sp; // stack pointer to next EMPTY slot
@@ -111,6 +119,7 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
+    metadata_t metadata;
     pdata_t pdata;
     instr_t[MAX_INSTRS] instructions;
     stack_t[STACK_SIZE] stack;
@@ -143,9 +152,14 @@ parser MyParser(packet_in packet,
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol) {
-            PROTOCOL_NUM: parse_pdata;
+            PROTOCOL_NUM: parse_metadata;
             default: accept;
         }
+    }
+
+    state parse_metadata {
+        packet.extract(hdr.metadata);
+        transition parse_pdata;
     }
 
     state parse_pdata {
@@ -728,19 +742,19 @@ control MyIngress(inout headers hdr,
         // this is specific to v1model
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.ingress_port;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.ingress_port;
         } else
         if (code == 1) {
-            hdr.pdata.curr_instr_arg = (int<32>) standard_metadata.packet_length;
+            hdr.pdata.curr_instr_arg = (int<32>) hdr.metadata.packet_length;
         } else 
         if (code == 2) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.enq_qdepth;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.enq_qdepth;
         } else 
         if (code == 3) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.deq_qdepth;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.deq_qdepth;
         } else 
         if (code == 4) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) standard_metadata.egress_spec;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.egress_spec;
         } else {
             hdr.pdata.curr_instr_arg = 0;
         }
@@ -829,6 +843,14 @@ control MyIngress(inout headers hdr,
 
     apply {
         ipv4_lpm.apply();
+        // if ingress is not self-fwd then write metadata fields
+        if (standard_metadata.ingress_port != 9w5) {
+            hdr.metadata.ingress_port = standard_metadata.ingress_port;
+            hdr.metadata.packet_length = standard_metadata.packet_length;
+            hdr.metadata.enq_qdepth = standard_metadata.enq_qdepth;
+            hdr.metadata.deq_qdepth = standard_metadata.deq_qdepth;
+            hdr.metadata.egress_spec = standard_metadata.egress_spec;
+        }
         if (hdr.pdata.done_flg == 1w1) {
             hdr.pdata.done_flg = 1w0;
             hdr.pdata.pc = 32w0;
@@ -877,6 +899,7 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
+        packet.emit(hdr.metadata);
         packet.emit(hdr.pdata);
         packet.emit(hdr.instructions);
         packet.emit(hdr.stack);

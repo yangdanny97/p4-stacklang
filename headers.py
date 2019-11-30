@@ -90,6 +90,16 @@ MAX_STEPS = 250
 STACK_SIZE = 32
 MAX_INSTRS = 32
 
+class Metadata(Packet):
+    name = 'metadata'
+    fields_desc = [
+        BitField('ingress_port', 0, 9),
+        BitField('packet_length', 0, 32),
+        BitField('enq_qdepth', 0, 19),
+        BitField('deq_qdepth', 0, 19),
+        BitField('egress_spec', 0, 9),
+    ]  
+
 class Pdata(Packet):
     name = 'pdata'
     fields_desc = [
@@ -273,6 +283,7 @@ def SETEGRESS():
 
 # building a packet by putting the headers in the right order
 def build_packet(pkt, instrs, init_stack = []):
+    pkt /= Metadata()
     pkt /= Pdata(sp = len(init_stack))
     assert len(instrs) < MAX_INSTRS
     for insn in instrs:
