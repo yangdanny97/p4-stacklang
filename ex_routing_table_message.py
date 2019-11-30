@@ -30,6 +30,7 @@ def main():
         print "the result field will be 999"
         print "arguments: <destination host>"
         print "example send to host h1: ./ex_routing_table_message.py 1"
+        return
 
     dest = int(sys.argv[1])
     addr = socket.gethostbyname(addresses[dest])

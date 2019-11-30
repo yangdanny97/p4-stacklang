@@ -7,9 +7,10 @@ import struct
 from headers import *
 from test_programs import *
 
-from scapy.all import srp1, sendp, send, get_if_list, get_if_hwaddr
+from scapy.all import srp1, sniff, sendp, send, get_if_list, get_if_hwaddr
 from scapy.all import Packet
 from scapy.all import Ether, IP, UDP, TCP
+import threading
 
 def get_if():
     ifs = get_if_list()
@@ -25,8 +26,7 @@ def get_if():
 
 def handle_pkt(pkt):
     print "received response:"
-    pkt[2].show()
-    sys.stdout.flush()
+    print pkt[2].show(True)
 
 def send_probe(addr, instrs, stk):   
     iface = get_if()
@@ -36,9 +36,8 @@ def send_probe(addr, instrs, stk):
 
     pkt = pkt /IP(dst=addr)
     pkt = build_packet(pkt, instrs, stk)
-
-    pkt[2].show()
-    sys.stdout.flush() 
+    # print pkt[2].show(True)
+    print "awaiting response..."
     pkt = srp1(pkt, iface=iface, verbose=False)
     handle_pkt(pkt)
 
@@ -51,7 +50,6 @@ def send_pkt(addr, instrs, stk):
     pkt = pkt /IP(dst=addr)
     pkt = build_packet(pkt, instrs, stk)
 
-    pkt[2].show()
-    sys.stdout.flush() 
+    print pkt[2].show(True)
     sendp(pkt, iface=iface, verbose=False)
 

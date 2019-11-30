@@ -39,6 +39,7 @@ def main():
     if len(sys.argv) < 2:
         print "calculates factorial of <n> and returns result to sender"
         print "arguments: <n>"
+        return
 
     addr = socket.gethostbyname("10.0.9.99")
     n = int(sys.argv[1])

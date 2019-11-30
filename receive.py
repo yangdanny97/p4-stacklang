@@ -36,8 +36,7 @@ class IPOption_MRI(IPOption):
                                    length_from=lambda pkt:pkt.count*4) ]
 
 def handle_pkt(pkt):
-    pkt[2].show()
-    sys.stdout.flush()        
+    print pkt[2].show(True)      
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))

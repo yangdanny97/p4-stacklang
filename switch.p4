@@ -657,6 +657,7 @@ control MyIngress(inout headers hdr,
     action instr_setresult() {
         stack.read(hdr.pdata.result, hdr.pdata.sp - 32w1);
         idrop();
+        increment_pc();
     }
 
     action instr_error() {
@@ -827,17 +828,17 @@ control MyIngress(inout headers hdr,
     }
 
     apply {
+        ipv4_lpm.apply();
         if (hdr.pdata.done_flg == 1w1) {
-            ipv4_lpm.apply();
             hdr.pdata.done_flg = 1w0;
             hdr.pdata.pc = 32w0;
             hdr.pdata.steps = 32w0;
-        } else if (hdr.pdata.err_flg == 1w1) {
-            ipv4_lpm.apply();
-        } else if (hdr.pdata.steps > MAX_STEPS) {
-            hdr.pdata.error_flg = 1w1;
-            ipv4_lpm.apply();
-        } else {
+        } 
+        else if (hdr.pdata.err_flg == 1w1) { } 
+        else if (hdr.pdata.steps > MAX_STEPS) {
+            hdr.pdata.err_flg = 1w1;
+        } 
+        else {
             // forward to self
             standard_metadata.egress_spec = 9w4;
             parse_instructions();

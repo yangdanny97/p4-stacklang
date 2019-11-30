@@ -35,7 +35,7 @@ def main():
     print "must be sent by h1"
     print "arguments: none"
     addr = socket.gethostbyname("10.0.9.99")
-    instrs, stk = test_source_routing(args)
+    instrs, stk = test_source_routing()
     send_pkt(addr, instrs, stk)
 
 if __name__ == '__main__':

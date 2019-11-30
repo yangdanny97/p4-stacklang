@@ -55,6 +55,7 @@ def main():
         print "then, send a program to the destination whose result field should be how many packets made it to the destination n_total - n_dropped"
         print "arguments: <destination addr> <n_total> <n_dropped>"
         print "requirements: n_total > n_dropped"
+        return
 
     addr = socket.gethostbyname(sys.argv[1])
     n_total = int(sys.argv[2])
