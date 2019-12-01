@@ -27,14 +27,14 @@ You'll notice that when sending the stack is represented as a stack of StackVal 
 - run `ex_routing_table_setup.py` from h1, this sets up the registers on each switch to be a forwarding table.
 - run `receive.py` on the desired destination host
 - run `ex_routing_table_message.py` on the sender host with the desired destination (host number, not the IP address) as input
-- example: running `ex_routing_table_message.py 2` sends a message to h2
+- example: running `ex_routing_table_message.py 2 hello` sends a message to h2
 
 #### Source routing:
 - run `mycontroller_nofwd.py`
 - run `receive.py` on the desired destination host
-- run `ex_source_routing.py` with the list of egress ports separated by spaces
-- example: sending from h1 to h2 `ex_source_routing.py 2 3 2 2 1`
-- example 2: sending from h1 to h2 `ex_source_routing.py 2 1`
+- run `ex_source_routing.py` with the message and the list of egress ports separated by spaces
+- example: sending from h1 to h2 `ex_source_routing.py hello 2 3 2 2 1`
+- example 2: sending from h1 to h2 `ex_source_routing.py hello 2 1`
 
 The topology for these examples is as follows:
 
@@ -44,6 +44,6 @@ The topology for these examples is as follows:
 | p2 | s2-p2 | s1-p2 | s1-p3 |
 | p3 | s3-p2 | s3-p3 | s2-p3 |
 
-Additionally, p4 of each switch is set to forward the packet back to the same switch.
+Additionally, p4 of each switch is set to forward the packet back to p5 on the same switch.
 
 
