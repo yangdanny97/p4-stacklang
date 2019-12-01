@@ -15,7 +15,7 @@ def test_table_setup():
         SETEGRESS(),
     ]
     init_stack = [
-        STACK(511), #s3 can drop
+        STACK(1), #s3 can drop
         STACK(1),
         STACK(3),
         STACK(2),
@@ -35,7 +35,7 @@ def main():
     print "must be sent by h1"
     print "arguments: none"
     addr = socket.gethostbyname("10.0.9.99")
-    instrs, stk = test_source_routing()
+    instrs, stk = test_table_setup()
     send_pkt(addr, instrs, stk)
 
 if __name__ == '__main__':

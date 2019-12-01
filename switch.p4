@@ -12,7 +12,7 @@ const bit<16> TYPE_IPV4 = 0x800;
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<32> MAX_STEPS = 250;
 const bit<32> STACK_SIZE = 32;
-const bit<32> MAX_INSTRS = 32;
+const bit<32> MAX_INSTRS = 33; //extra for special last instruction
 const bit<32> NUM_REGISTERS = 32;
 
 header instr_t {
@@ -96,7 +96,7 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
     
     bit<32> n = STACK_SIZE;
-    bit<32> m = MAX_INSTRS + 32w1;
+    bit<32> m = MAX_INSTRS;
 
     state start {
         transition parse_ethernet;
@@ -324,7 +324,9 @@ control MyIngress(inout headers hdr,
     }
 
     action idrop() {
+        //overwrite dropped stack value with 0
         hdr.pdata.sp = hdr.pdata.sp - 32w1;
+        stack.write(hdr.pdata.sp, 0);
     }
 
 
@@ -739,6 +741,7 @@ control MyIngress(inout headers hdr,
     
     action ipv4_forward(egressSpec_t port) {
         standard_metadata.egress_spec = port;
+        hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
     }
 
     table ipv4_lpm {
@@ -824,6 +827,8 @@ control MyIngress(inout headers hdr,
         else {
             // forward to self
             standard_metadata.egress_spec = 9w4;
+            // don't decrement ttl for self-forwarding
+            hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
             parse_instructions();
             parse_stack();
             read_current_instr();

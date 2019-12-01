@@ -34,14 +34,13 @@ def test_fib(n):
 
 def main():
     if len(sys.argv) < 2:
-        print "calculates factorial of <n> and returns result to sender"
+        print "calculates the <n>th fibonacci digit and returns result to sender"
         print "arguments: <n>"
         return
 
-    addr = socket.gethostbyname("10.0.9.99")
     n = int(sys.argv[1])
     instrs, stk = test_fib(n)
-    send_probe(addr, instrs, stk)
+    send_probe(instrs, stk)
 
 if __name__ == '__main__':
     main()

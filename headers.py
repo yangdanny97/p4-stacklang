@@ -3,6 +3,18 @@ from scapy.all import Packet, Raw
 from scapy.all import IP
 from scapy.fields import *
 
+def get_if():
+    ifs = get_if_list()
+    iface = None  # "h1-eth0"
+    for i in get_if_list():
+        if "eth0" in i:
+            iface = i
+            break
+    if not iface:
+        print "Cannot find eth0 interface"
+        exit(1)
+    return iface
+
 # keep consistent with headers.p4
 i_load = 0x00
 i_store = 0x01
@@ -123,13 +135,51 @@ class Instruction(Packet):
         IntField('arg', 0),
     ]
 
-class Stack(Packet):
-    name = 'Stack'
+class StackVal(Packet):
+    name = 'StackVal'
     fields_desc = [
         IntField('value', 0),
     ]
 
-def STACK(val = 0):
+# purely exists for pretty-printing
+class Stack(Packet):
+    name = 'Stack'
+    fields_desc = [
+        IntField('idx_0',0),
+        IntField('idx_1',0),
+        IntField('idx_2',0),
+        IntField('idx_3',0),
+        IntField('idx_4',0),
+        IntField('idx_5',0),
+        IntField('idx_6',0),
+        IntField('idx_7',0),
+        IntField('idx_8',0),
+        IntField('idx_9',0),
+        IntField('idx_10',0),
+        IntField('idx_11',0),
+        IntField('idx_12',0),
+        IntField('idx_13',0),
+        IntField('idx_14',0),
+        IntField('idx_15',0),
+        IntField('idx_16',0),
+        IntField('idx_17',0),
+        IntField('idx_18',0),
+        IntField('idx_19',0),
+        IntField('idx_20',0),
+        IntField('idx_21',0),
+        IntField('idx_22',0),
+        IntField('idx_23',0),
+        IntField('idx_24',0),
+        IntField('idx_25',0),
+        IntField('idx_26',0),
+        IntField('idx_27',0),
+        IntField('idx_28',0),
+        IntField('idx_29',0),
+        IntField('idx_30',0),
+        IntField('idx_31',0)
+    ]
+
+def STACKV(val = 0):
     return Stack(value = val)
 
 # instruction factories
@@ -311,8 +361,7 @@ def build_packet(pkt, instrs, init_stack = []):
 bind_layers(IP, Metadata, proto=PROTOCOL_NUM)
 bind_layers(Metadata, Pdata)
 bind_layers(Pdata, Instruction)
-bind_layers(Instruction, Instruction)
 bind_layers(Instruction, Stack, opcode=i_last)
-bind_layers(Stack, Stack)
+bind_layers(Instruction, Instruction)
 
 sys.setrecursionlimit(30000)

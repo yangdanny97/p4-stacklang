@@ -9,19 +9,18 @@ from headers import *
 
 def test():
     prog = [
+        PUSH(1),
+        STOREREG(5),
+        PUSH(5),
+        VARLOADREG(),
         SETEGRESS(),
     ]
-    init_stack = [
-        STACK(1),
-        STACK(2),
-        STACK(2),
-    ]
+    init_stack = []
     return prog, init_stack
 
 def main():
-    addr = socket.gethostbyname("10.0.9.99")
     instrs, stk = test()
-    send_probe(addr, instrs, stk)
+    send_probe(instrs, stk)
 
 if __name__ == '__main__':
     main()

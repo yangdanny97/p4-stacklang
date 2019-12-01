@@ -41,10 +41,9 @@ def main():
         print "arguments: <n>"
         return
 
-    addr = socket.gethostbyname("10.0.9.99")
     n = int(sys.argv[1])
     instrs, stk = test_fact_regs(n)
-    send_probe(addr, instrs, stk)
+    send_probe(instrs, stk)
 
 if __name__ == '__main__':
     main()

@@ -5,13 +5,13 @@ To run the examples, first run `make`, then follow the instructions below.
 Use a separate tab in the terminal to run the controller after the switch is done compiling. To run programs on the hosts, in the mininet cli which appears after you run `make`, run `xterm` followed by the hosts you want to open (ex: `xterm h1 h2 h3`).
 
 There are two controller files:
-- mycontroller sets up the forwarding table and instruction tables
+- mycontroller sets up the regular ipv4 lpm forwarding table and instruction tables
 - mycontroller_nofwd only sets up the instruction tables, with no forwarding rules - this isn't strictly necessary since Stitch programs can override this forwarding behavior, but I want to show that forwarding tables are not used at all for some of the examples
 
 #### Factorial/Fibonacci:
 - run either controller
-- run the desired factorial/fibonacci file on any host 
-- example: `./ex_factorial.py 5` calculates `5!` and returns the packet with the result to the sender
+- run the desired factorial/fibonacci file on any host
+- example: `./ex_factorial.py 5` calculates `5!` and returns the packet with the result (in the `result` field of the pdata header) to the sender
 
 #### Dropped packets:
 - run `mycontroller.py`

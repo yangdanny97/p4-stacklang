@@ -18,24 +18,19 @@ def test_message(dest):
     ]
     return prog, init_stk
 
-addresses = {
-    1: "10.0.1.11",
-    2: "10.0.2.22",
-    3: "10.0.3.33"
-}
-
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         print "sends a message that is routed based on register values on the switch"
         print "the result field will be 999"
-        print "arguments: <destination host>"
-        print "example send to host h1: ./ex_routing_table_message.py 1"
+        print "arguments: <destination host> <message>"
+        print "example send to host h1: ./ex_routing_table_message.py 1 hello"
         return
 
     dest = int(sys.argv[1])
-    addr = socket.gethostbyname(addresses[dest])
+    message = sys.argv[2]
+    addr = socket.gethostbyname("10.0.9.99") # dummy address
     instrs, stk = test_message(dest)
-    send_pkt(addr, instrs, stk)
+    send_pkt(addr, instrs, stk, message)
 
 if __name__ == '__main__':
     main()
