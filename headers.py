@@ -302,5 +302,11 @@ def build_packet(pkt, instrs, init_stack = []):
         padding -=1
     return pkt
 
-bind_layers(IP, Pdata, proto=PROTOCOL_NUM)
+bind_layers(IP, Metadata, proto=PROTOCOL_NUM)
+bind_layers(Metadata, Pdata)
+bind_layers(Pdata, Instruction)
+bind_layers(Instruction, Instruction)
+bind_layers(Instruction, Stack)
+bind_layers(Stack, Stack)
+
 sys.setrecursionlimit(30000)
