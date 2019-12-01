@@ -1,3 +1,11 @@
+## Stitch - a stack-based DSL for active networking
+
+#### Final project for CS 6114 Network PL (FA19) taught by Nate Foster
+
+Active networking is a networking paradigm that allows user-defined computations carried in packets to be executed on the network, allowing for dynamic modification of the network's behavior. Stitch is a domain specific bytecode language that implements a form of active networking. Packets containing Stitch programs can be executed by switches, allowing arbitrary computations and modifications to the network in real-time. This enables a wide variety of measurements, computations, and state changes to be performed without modifying/recompiling the switch. The name Stitch is a combination of the words "stack" and "switch".
+
+![logo](https://raw.githubusercontent.com/yangdanny97/p4-stacklang/master/stitch-logo.png)
+
 ### Examples
 
 To run the examples, first run `make`, then follow the instructions below.
@@ -5,10 +13,20 @@ To run the examples, first run `make`, then follow the instructions below.
 Use a separate tab in the terminal to run the controller after the switch is done compiling. To run programs on the hosts, in the mininet cli which appears after you run `make`, run `xterm` followed by the hosts you want to open (ex: `xterm h1 h2 h3`).
 
 There are two controller files:
-- mycontroller sets up the regular ipv4 lpm forwarding table and instruction tables
-- mycontroller_nofwd only sets up the instruction tables, with no forwarding rules - this isn't strictly necessary since Stitch programs can override this forwarding behavior, but I want to show that forwarding tables are not used at all for some of the examples
+- `mycontroller.py` sets up the regular ipv4 lpm forwarding table and instruction tables
+- `mycontroller_nofwd.py` only sets up the instruction tables, with no forwarding rules - this isn't strictly necessary since Stitch programs can override this forwarding behavior, but I want to show that forwarding tables are not used at all for some of the examples
 
 You'll notice that when sending the stack is represented as a stack of StackVal headers, but when receiving the stack is represented as a single Stack header with 32 fields. This is intentional and mainly for the purposes of having a nice printout as well as making sure Scapy can separate the stack from any raw payload that comes after it.
+
+The topology for these examples is as follows (the definition can be found in `topology.json`):
+
+|    | s1    | s2    | s3    |
+|----|-------|-------|-------|
+| p1 | h1    | h2    | h3    |
+| p2 | s2-p2 | s1-p2 | s1-p3 |
+| p3 | s3-p2 | s3-p3 | s2-p3 |
+
+Additionally, p4 of each switch is set to forward the packet back to p5 on the same switch.
 
 #### Factorial/Fibonacci:
 - run either controller
@@ -36,14 +54,5 @@ You'll notice that when sending the stack is represented as a stack of StackVal 
 - example: sending from h1 to h2 `ex_source_routing.py hello 2 3 2 2 1`
 - example 2: sending from h1 to h2 `ex_source_routing.py hello 2 1`
 
-The topology for these examples is as follows:
-
-|    | s1    | s2    | s3    |
-|----|-------|-------|-------|
-| p1 | h1    | h2    | h3    |
-| p2 | s2-p2 | s1-p2 | s1-p3 |
-| p3 | s3-p2 | s3-p3 | s2-p3 |
-
-Additionally, p4 of each switch is set to forward the packet back to p5 on the same switch.
 
 
