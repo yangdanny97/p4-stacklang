@@ -8,6 +8,8 @@ There are two controller files:
 - mycontroller sets up the regular ipv4 lpm forwarding table and instruction tables
 - mycontroller_nofwd only sets up the instruction tables, with no forwarding rules - this isn't strictly necessary since Stitch programs can override this forwarding behavior, but I want to show that forwarding tables are not used at all for some of the examples
 
+You'll notice that when sending the stack is represented as a stack of StackVal headers, but when receiving the stack is represented as a single Stack header with 32 fields. This is intentional and mainly for the purposes of having a nice printout as well as making sure Scapy can separate the stack from any raw payload that comes after it.
+
 #### Factorial/Fibonacci:
 - run either controller
 - run the desired factorial/fibonacci file on any host
