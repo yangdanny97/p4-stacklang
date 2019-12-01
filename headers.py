@@ -179,8 +179,8 @@ class Stack(Packet):
         IntField('idx_31',0)
     ]
 
-def STACKV(val = 0):
-    return Stack(value = val)
+def STACK(val = 0):
+    return StackVal(value = val)
 
 # instruction factories
 
