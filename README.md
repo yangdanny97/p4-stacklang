@@ -30,23 +30,23 @@ The topology for these examples is as follows (the definition can be found in `t
 
 Additionally, p4 of each switch is set to forward the packet back to p5 on the same switch.
 
-#### Factorial/Fibonacci:
+#### Example: Factorial/Fibonacci
 Stitch programs for performing mathematical calculations.
 
 - run either controller
 - run the desired factorial/fibonacci file on any host
 - example: `./ex_factorial.py 5` calculates `5!` and returns the packet with the result (in the `result` field of the pdata header) to the sender (inputs to factorial/fibonnacci should keep in mind stack size limitations and integer overflow)
 
-#### Dropped packets:
+#### Example: Dropped packets detector
 Detect and count dropped packets on a particular path.
 
 - run `mycontroller.py`
 - run `receive.py` on the desired destination host
 - run `ex_dropped_packets.py` on the sender host
 - arguments: destination, num_total_packets, num_dropped_packets
-- example: running `ex_dropped_packets.py 10.0.2.22 10 4` on h1 sends 10 packets to h2 of which 4 are dropped, and the probe program should arrive at h2 with the result field set to 6
+- example: running `ex_dropped_packets.py 10.0.2.22 10 4` on h1 sends 10 packets to h2 of which 4 are dropped, and then sends a counting program should arrive at h2 with the result field set to 6
 
-#### Pseudo routing table:
+#### Example: Match-action table
 Simulate a match-action table using Stitch using registers, and send programs which use the simulated table to forward themselves to the destination.
 
 - run `mycontroller_nofwd.py`
@@ -55,7 +55,7 @@ Simulate a match-action table using Stitch using registers, and send programs wh
 - run `ex_routing_table_message.py` on the sender host with the destination (host number, not the IP address) as input
 - example: running `ex_routing_table_message.py 2 hello` sends a message to h2
 
-#### Source routing:
+#### Example: Source routing
 Simple source routing using Stitch.
 
 - run `mycontroller_nofwd.py`
