@@ -42,6 +42,7 @@ i_varload = 0x22
 i_varstore = 0x23
 i_varloadreg = 0x24
 i_varstorereg = 0x25
+i_last = 0x26
 
 # used by the controller to add rules
 instrs = [
@@ -83,6 +84,7 @@ instrs = [
 (i_varstore, "instr_varstore"),
 (i_varloadreg, "instr_varloadreg"),
 (i_varstorereg, "instr_varstorereg"),
+(i_last, "instr_error"),
 ]
 
 PROTOCOL_NUM = 0x8F
@@ -250,6 +252,9 @@ def NOP():
 def ERROR():
     return Instruction(opcode = i_error, arg = 0)
 
+def LAST():
+    return Instruction(opcode = i_last, arg = 0)
+
 # load value from register [r] to top of stack
 def LOADREG(r):
     return Instruction(opcode = i_loadreg, arg = r)
@@ -293,6 +298,7 @@ def build_packet(pkt, instrs, init_stack = []):
     while padding > 0:
         pkt /= ERROR()
         padding -=1
+    pkt /= LAST()
     # initialize the stack
     for stk in init_stack:
         pkt /= stk
@@ -306,7 +312,7 @@ bind_layers(IP, Metadata, proto=PROTOCOL_NUM)
 bind_layers(Metadata, Pdata)
 bind_layers(Pdata, Instruction)
 bind_layers(Instruction, Instruction)
-bind_layers(Instruction, Stack)
+bind_layers(Instruction, Stack, opcode=i_last)
 bind_layers(Stack, Stack)
 
 sys.setrecursionlimit(30000)

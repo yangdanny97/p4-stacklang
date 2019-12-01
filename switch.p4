@@ -15,45 +15,6 @@ const bit<32> STACK_SIZE = 32;
 const bit<32> MAX_INSTRS = 32;
 const bit<32> NUM_REGISTERS = 32;
 
-const bit<8> i_load = 0x00;
-const bit<8> i_store = 0x01;
-const bit<8> i_push = 0x02;
-const bit<8> i_drop = 0x03;
-const bit<8> i_add = 0x04;
-const bit<8> i_mul = 0x05;
-const bit<8> i_sub = 0x06;
-const bit<8> i_neg = 0x07;
-const bit<8> i_reset = 0x08;
-const bit<8> i_and = 0x09;
-const bit<8> i_or = 0x0A;
-const bit<8> i_gt = 0x0B;
-const bit<8> i_lt = 0x0C;
-const bit<8> i_lte = 0x0D;
-const bit<8> i_gte = 0x0E;
-const bit<8> i_eq = 0x0F;
-const bit<8> i_neq = 0x10;
-const bit<8> i_dup = 0x11;
-const bit<8> i_swap = 0x12;
-const bit<8> i_over = 0x13;
-const bit<8> i_rot = 0x14;
-const bit<8> i_jump = 0x15;
-const bit<8> i_cjump = 0x16;
-const bit<8> i_done = 0x17;
-const bit<8> i_error = 0x18;
-const bit<8> i_nop = 0x19;
-const bit<8> i_loadreg = 0x1A;
-const bit<8> i_storereg = 0x1B;
-const bit<8> i_metadata = 0x1C;
-const bit<8> i_sal = 0x1D;
-const bit<8> i_sar = 0x1E;
-const bit<8> i_not = 0x1F;
-const bit<8> i_setegress = 0x20;
-const bit<8> i_setresult = 0x21;
-const bit<8> i_varload = 0x22;
-const bit<8> i_varstore = 0x23;
-const bit<8> i_varloadreg = 0x24;
-const bit<8> i_varstorereg = 0x25;
-
 header instr_t {
     bit<8> opcode;
     int<32> arg;
@@ -135,7 +96,7 @@ parser MyParser(packet_in packet,
                 inout standard_metadata_t standard_metadata) {
     
     bit<32> n = STACK_SIZE;
-    bit<32> m = MAX_INSTRS;
+    bit<32> m = MAX_INSTRS + 32w1;
 
     state start {
         transition parse_ethernet;
