@@ -803,6 +803,47 @@ control MyIngress(inout headers hdr,
         }
         size = 1024;
         default_action = instr_error();
+        const entries = {
+            0x00 : instr_load();
+            0x01 : instr_store();
+            0x02 : instr_push();
+            0x03 : instr_drop();
+            0x04 : instr_add();
+            0x05 : instr_mul();
+            0x06 : instr_sub();
+            0x07 : instr_sub();
+            0x08 : instr_reset();
+            0x09 : instr_and();
+            0x0A : instr_or();
+            0x0B : instr_gt();
+            0x0C : instr_lt();
+            0x0D : instr_lte();
+            0x0E : instr_gte();
+            0x0F : instr_eq();
+            0x10 : instr_neq();
+            0x11 : instr_dup();
+            0x12 : instr_swap();
+            0x13 : instr_over();
+            0x14 : instr_rot();
+            0x15 : instr_jump();
+            0x16 : instr_cjump();
+            0x17 : instr_done();
+            0x18 : instr_error();
+            0x19 : instr_nop();
+            0x1A : instr_loadreg();
+            0x1B : instr_storereg();
+            0x1C : instr_metadata();
+            0x1D : instr_sal();
+            0x1E : instr_sar();
+            0x1F : instr_not();
+            0x20 : instr_setegress();
+            0x21 : instr_setresult();
+            0x22 : instr_varload();
+            0x23 : instr_varstore();
+            0x24 : instr_varloadreg();
+            0x25 : instr_varstorereg();
+            0x26 : instr_error(); // last is treated as error
+        } 
     }
 
     apply {

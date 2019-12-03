@@ -29,18 +29,6 @@ def addForwardingRule(switch, dst_ip_addr, dst_port):
     bmv2_switch = switches[switch]
     bmv2_switch.WriteTableEntry(table_entry)
     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
-
-def addInstrRule(switch, opcode, action):
-    # Helper function to install forwarding rules
-    table_entry = p4info_helper.buildTableEntry(
-        table_name="MyIngress.instruction_table",
-        match_fields={
-            "hdr.pdata.curr_instr_opcode": opcode
-        },
-        action_name=action)
-    bmv2_switch = switches[switch]
-    bmv2_switch.WriteTableEntry(table_entry)
-    print "Installed rule for %s" % action
     
 def main(p4info_file_path, bmv2_file_path, topo_file_path):
     # Instantiate a P4Runtime helper from the p4info file
@@ -73,12 +61,6 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
         addForwardingRule("s3","10.0.3.33",1)
         addForwardingRule("s3","10.0.2.22",3)
         addForwardingRule("s3","10.0.1.11",2)
-
-        for i in instrs:
-            opcode, action = i
-            addInstrRule("s1", opcode, action)
-            addInstrRule("s2", opcode, action)
-            addInstrRule("s3", opcode, action)
 
     except KeyboardInterrupt:
         print " Shutting down."
