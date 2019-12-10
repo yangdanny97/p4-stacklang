@@ -801,7 +801,6 @@ control MyIngress(inout headers hdr,
             instr_varloadreg;
             instr_varstorereg;
         }
-        size = 1024;
         default_action = instr_error();
         const entries = {
             0x00 : instr_load();
