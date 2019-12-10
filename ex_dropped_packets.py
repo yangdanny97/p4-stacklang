@@ -60,9 +60,9 @@ def main():
     addr = socket.gethostbyname(sys.argv[1])
     n_total = int(sys.argv[2])
     n_dropped = int(sys.argv[3])
-    programs = ([0] * (n_total - n_dropped) + ([1] * n_dropped)
+    programs = ([0] * (n_total - n_dropped) + ([1] * n_dropped))
     random.shuffle(programs)
-    for i in programs():
+    for i in programs:
         if i == 0:
             instrs, stk = test_counter()
             send_pkt(addr, instrs, stk)

@@ -11,7 +11,7 @@ from scapy.layers.inet import _IPOption_HDR
 from headers import *
 
 def handle_pkt(pkt):
-    print pkt[3].show(True)      
+    pkt[3].show(True)      
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))

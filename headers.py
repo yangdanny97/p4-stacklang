@@ -114,6 +114,9 @@ class Metadata(Packet):
         BitField('egress_spec', 0, 9),
     ]  
 
+    def answers(self, other):
+        return True
+
 class Pdata(Packet):
     name = 'pdata'
     fields_desc = [
@@ -128,6 +131,9 @@ class Pdata(Packet):
         IntField('curr_instr_arg', 0),
     ]
 
+    def answers(self, other):
+        return True
+
 class Instruction(Packet):
     name = 'Instruction'
     fields_desc = [
@@ -135,11 +141,17 @@ class Instruction(Packet):
         IntField('arg', 0),
     ]
 
+    def answers(self, other):
+        return True
+
 class StackVal(Packet):
     name = 'StackVal'
     fields_desc = [
         IntField('value', 0),
     ]
+
+    def answers(self, other):
+        return True
 
 # purely exists for pretty-printing
 class Stack(Packet):
@@ -178,6 +190,9 @@ class Stack(Packet):
         IntField('idx_30',0),
         IntField('idx_31',0)
     ]
+
+    def answers(self, other):
+        return True
 
 def STACK(val = 0):
     return StackVal(value = val)

@@ -24,7 +24,7 @@ header stack_t {
     int<32> value;
 }
 
-header metadata_t {
+header my_metadata_t {
     bit<9> ingress_port;
     bit<32> packet_length;
     bit<19> enq_qdepth;
@@ -80,7 +80,7 @@ struct metadata {
 struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
-    metadata_t metadata;
+    my_metadata_t my_metadata;
     pdata_t pdata;
     instr_t[MAX_INSTRS] instructions;
     stack_t[STACK_SIZE] stack;
@@ -119,7 +119,7 @@ parser MyParser(packet_in packet,
     }
 
     state parse_metadata {
-        packet.extract(hdr.metadata);
+        packet.extract(hdr.my_metadata);
         transition parse_pdata;
     }
 
@@ -705,19 +705,19 @@ control MyIngress(inout headers hdr,
         // this is specific to v1model
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.ingress_port;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
         } else
         if (code == 1) {
-            hdr.pdata.curr_instr_arg = (int<32>) hdr.metadata.packet_length;
+            hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
         } else 
         if (code == 2) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.enq_qdepth;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
         } else 
         if (code == 3) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.deq_qdepth;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
         } else 
         if (code == 4) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.metadata.egress_spec;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.egress_spec;
         } else {
             hdr.pdata.curr_instr_arg = 0;
         }
@@ -849,11 +849,11 @@ control MyIngress(inout headers hdr,
         ipv4_lpm.apply();
         // if ingress is not self-fwd then write metadata fields
         if (standard_metadata.ingress_port != 9w5) {
-            hdr.metadata.ingress_port = standard_metadata.ingress_port;
-            hdr.metadata.packet_length = standard_metadata.packet_length;
-            hdr.metadata.enq_qdepth = standard_metadata.enq_qdepth;
-            hdr.metadata.deq_qdepth = standard_metadata.deq_qdepth;
-            hdr.metadata.egress_spec = standard_metadata.egress_spec;
+            hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
+            hdr.my_metadata.packet_length = standard_metadata.packet_length;
+            hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+            hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+            hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
         if (hdr.pdata.done_flg == 1w1) {
             hdr.pdata.done_flg = 1w0;
@@ -905,7 +905,7 @@ control MyDeparser(packet_out packet, in headers hdr) {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
-        packet.emit(hdr.metadata);
+        packet.emit(hdr.my_metadata);
         packet.emit(hdr.pdata);
         packet.emit(hdr.instructions);
         packet.emit(hdr.stack);

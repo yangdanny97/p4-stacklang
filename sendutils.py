@@ -20,11 +20,11 @@ def send_probe(instrs, stk):
 
     pkt = pkt /IP()
     pkt = build_packet(pkt, instrs, stk)
-    print pkt[3].show(True)
+    pkt[3].show(True)
     print "awaiting response..."
-    pkt = srp1(pkt, iface=iface, verbose=False)
+    pkt = srp1(pkt, iface=iface, verbose=True, timeout=3, nofilter=1)
     print "response:"
-    print pkt[3].show(True)
+    pkt[3].show(True)
 
 def send_pkt(addr, instrs, stk, message = None):
     iface = get_if()
@@ -38,6 +38,6 @@ def send_pkt(addr, instrs, stk, message = None):
     if message != None:
         pkt /= message
 
-    print pkt[3].show(True)
-    sendp(pkt, iface=iface, verbose=False)
+    pkt[3].show(True)
+    sendp(pkt, iface=iface, verbose=True)
 
