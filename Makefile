@@ -4,3 +4,6 @@ include utils/Makefile
 
 setup:
 	rm switch.p4; rm controller.py; ./python setup.py
+
+cleanup: 
+	rm switch.p4; rm controller.py

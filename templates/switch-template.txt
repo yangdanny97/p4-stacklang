@@ -10,10 +10,10 @@ const bit<16> TYPE_IPV4 = 0x800;
 
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
-const bit<32> MAX_STEPS = 250;
-const bit<32> STACK_SIZE = 32;
-const bit<32> MAX_INSTRS = 33; //extra for special last instruction
-const bit<32> NUM_REGISTERS = 32;
+const bit<32> MAX_STEPS = << max_steps >>;
+const bit<32> STACK_SIZE = << stack_size >>;
+const bit<32> MAX_INSTRS = << max_instrs >>; //extra for special last instruction
+const bit<32> NUM_REGISTERS = << n_registers >>;
 
 header instr_t {
     bit<8> opcode;
@@ -169,16 +169,16 @@ control MyIngress(inout headers hdr,
     register<int<32>>(NUM_REGISTERS) swregs;
 
     action parse_instructions() {
-        {% parse_opcodes %}
-        {% parse_args %}
+<< parse_opcodes >>
+<< parse_args >>
     }
 
     action parse_stack() {
-        {% parse_stack %}
+<< parse_stack >>
     }
 
     action deparse_stack() {
-        {% deparse_stack %}
+<< deparse_stack >>
     }
 
     action read_current_instr() {
@@ -724,7 +724,7 @@ control MyIngress(inout headers hdr,
     apply {
         ipv4_lpm.apply();
         // if ingress is not self-fwd then write metadata fields
-        if (standard_metadata.ingress_port != 9w5) {
+        if (standard_metadata.ingress_port != 9w<< self_fwd_inport >>) {
             hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
@@ -742,7 +742,7 @@ control MyIngress(inout headers hdr,
         } 
         else {
             // forward to self
-            standard_metadata.egress_spec = 9w4;
+            standard_metadata.egress_spec = 9w<< self_fwd_outport >>;
             // don't decrement ttl for self-forwarding
             hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
             parse_instructions();

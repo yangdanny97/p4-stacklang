@@ -286,7 +286,8 @@ def processfile(filename, config):
                     if l[1] not in config["switch-metadata"]:
                         raise Exception("unknown metadata field!")
                     else:
-                        instructions.append(METADATA(config["switch-metadata"][l[1]]))
+                        field_idx = config["switch-metadata"][l[1]]
+                        instructions.append(METADATA(field_idx))
                 else:
                     raise Exception("no such instruction")
                 elif instr == "setegress":

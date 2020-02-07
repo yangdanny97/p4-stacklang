@@ -23,7 +23,7 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
 
     try:
         # Establish a P4 Runtime connection to each switch
-        for switch in ["s1", "s2", "s3"]:
+        for switch in [['s3', 's2', 's1']]:
             switch_id = int(switch[1:])
             bmv2_switch = p4runtime_lib.bmv2.Bmv2SwitchConnection(
                 name=switch,
