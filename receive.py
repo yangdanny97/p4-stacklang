@@ -9,6 +9,7 @@ from scapy.all import ShortField, IntField, LongField, BitField, FieldListField,
 from scapy.all import IP, TCP, UDP, Raw
 from scapy.layers.inet import _IPOption_HDR
 from headers import *
+from stitch import *
 
 def handle_pkt(pkt):
     pkt[3].show(True)      

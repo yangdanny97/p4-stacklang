@@ -10,10 +10,10 @@ const bit<16> TYPE_IPV4 = 0x800;
 
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
-const bit<32> MAX_STEPS = {% n_steps %};
-const bit<32> STACK_SIZE = {% stack_size %};
-const bit<32> MAX_INSTRS = {% max_instrs %}; //+1 for special last instruction
-const bit<32> NUM_REGISTERS = {% n_registers %};
+const bit<32> MAX_STEPS = 250;
+const bit<32> STACK_SIZE = 32;
+const bit<32> MAX_INSTRS = 33; //extra for special last instruction
+const bit<32> NUM_REGISTERS = 32;
 
 header instr_t {
     bit<8> opcode;
@@ -169,140 +169,16 @@ control MyIngress(inout headers hdr,
     register<int<32>>(NUM_REGISTERS) swregs;
 
     action parse_instructions() {
-        opcodes.write(0, hdr.instructions[0].opcode);
-        opcodes.write(1, hdr.instructions[1].opcode);
-        opcodes.write(2, hdr.instructions[2].opcode);
-        opcodes.write(3, hdr.instructions[3].opcode);
-        opcodes.write(4, hdr.instructions[4].opcode);
-        opcodes.write(5, hdr.instructions[5].opcode);
-        opcodes.write(6, hdr.instructions[6].opcode);
-        opcodes.write(7, hdr.instructions[7].opcode);
-        opcodes.write(8, hdr.instructions[8].opcode);
-        opcodes.write(9, hdr.instructions[9].opcode);
-        opcodes.write(10, hdr.instructions[10].opcode);
-        opcodes.write(11, hdr.instructions[11].opcode);
-        opcodes.write(12, hdr.instructions[12].opcode);
-        opcodes.write(13, hdr.instructions[13].opcode);
-        opcodes.write(14, hdr.instructions[14].opcode);
-        opcodes.write(15, hdr.instructions[15].opcode);
-        opcodes.write(16, hdr.instructions[16].opcode);
-        opcodes.write(17, hdr.instructions[17].opcode);
-        opcodes.write(18, hdr.instructions[18].opcode);
-        opcodes.write(19, hdr.instructions[19].opcode);
-        opcodes.write(20, hdr.instructions[20].opcode);
-        opcodes.write(21, hdr.instructions[21].opcode);
-        opcodes.write(22, hdr.instructions[22].opcode);
-        opcodes.write(23, hdr.instructions[23].opcode);
-        opcodes.write(24, hdr.instructions[24].opcode);
-        opcodes.write(25, hdr.instructions[25].opcode);
-        opcodes.write(26, hdr.instructions[26].opcode);
-        opcodes.write(27, hdr.instructions[27].opcode);
-        opcodes.write(28, hdr.instructions[28].opcode);
-        opcodes.write(29, hdr.instructions[29].opcode);
-        opcodes.write(30, hdr.instructions[30].opcode);
-        opcodes.write(31, hdr.instructions[31].opcode);
-        args.write(0, hdr.instructions[0].arg);
-        args.write(1, hdr.instructions[1].arg);
-        args.write(2, hdr.instructions[2].arg);
-        args.write(3, hdr.instructions[3].arg);
-        args.write(4, hdr.instructions[4].arg);
-        args.write(5, hdr.instructions[5].arg);
-        args.write(6, hdr.instructions[6].arg);
-        args.write(7, hdr.instructions[7].arg);
-        args.write(8, hdr.instructions[8].arg);
-        args.write(9, hdr.instructions[9].arg);
-        args.write(10, hdr.instructions[10].arg);
-        args.write(11, hdr.instructions[11].arg);
-        args.write(12, hdr.instructions[12].arg);
-        args.write(13, hdr.instructions[13].arg);
-        args.write(14, hdr.instructions[14].arg);
-        args.write(15, hdr.instructions[15].arg);
-        args.write(16, hdr.instructions[16].arg);
-        args.write(17, hdr.instructions[17].arg);
-        args.write(18, hdr.instructions[18].arg);
-        args.write(19, hdr.instructions[19].arg);
-        args.write(20, hdr.instructions[20].arg);
-        args.write(21, hdr.instructions[21].arg);
-        args.write(22, hdr.instructions[22].arg);
-        args.write(23, hdr.instructions[23].arg);
-        args.write(24, hdr.instructions[24].arg);
-        args.write(25, hdr.instructions[25].arg);
-        args.write(26, hdr.instructions[26].arg);
-        args.write(27, hdr.instructions[27].arg);
-        args.write(28, hdr.instructions[28].arg);
-        args.write(29, hdr.instructions[29].arg);
-        args.write(30, hdr.instructions[30].arg);
-        args.write(31, hdr.instructions[31].arg);
+        {% parse_opcodes %}
+        {% parse_args %}
     }
 
     action parse_stack() {
-        stack.write(0, hdr.stack[0].value);
-        stack.write(1, hdr.stack[1].value);
-        stack.write(2, hdr.stack[2].value);
-        stack.write(3, hdr.stack[3].value);
-        stack.write(4, hdr.stack[4].value);
-        stack.write(5, hdr.stack[5].value);
-        stack.write(6, hdr.stack[6].value);
-        stack.write(7, hdr.stack[7].value);
-        stack.write(8, hdr.stack[8].value);
-        stack.write(9, hdr.stack[9].value);
-        stack.write(10, hdr.stack[10].value);
-        stack.write(11, hdr.stack[11].value);
-        stack.write(12, hdr.stack[12].value);
-        stack.write(13, hdr.stack[13].value);
-        stack.write(14, hdr.stack[14].value);
-        stack.write(15, hdr.stack[15].value);
-        stack.write(16, hdr.stack[16].value);
-        stack.write(17, hdr.stack[17].value);
-        stack.write(18, hdr.stack[18].value);
-        stack.write(19, hdr.stack[19].value);
-        stack.write(20, hdr.stack[20].value);
-        stack.write(21, hdr.stack[21].value);
-        stack.write(22, hdr.stack[22].value);
-        stack.write(23, hdr.stack[23].value);
-        stack.write(24, hdr.stack[24].value);
-        stack.write(25, hdr.stack[25].value);
-        stack.write(26, hdr.stack[26].value);
-        stack.write(27, hdr.stack[27].value);
-        stack.write(28, hdr.stack[28].value);
-        stack.write(29, hdr.stack[29].value);
-        stack.write(30, hdr.stack[30].value);
-        stack.write(31, hdr.stack[31].value);
+        {% parse_stack %}
     }
 
     action deparse_stack() {
-        stack.read(hdr.stack[0].value, 0);
-        stack.read(hdr.stack[1].value, 1);
-        stack.read(hdr.stack[2].value, 2);
-        stack.read(hdr.stack[3].value, 3);
-        stack.read(hdr.stack[4].value, 4);
-        stack.read(hdr.stack[5].value, 5);
-        stack.read(hdr.stack[6].value, 6);
-        stack.read(hdr.stack[7].value, 7);
-        stack.read(hdr.stack[8].value, 8);
-        stack.read(hdr.stack[9].value, 9);
-        stack.read(hdr.stack[10].value, 10);
-        stack.read(hdr.stack[11].value, 11);
-        stack.read(hdr.stack[12].value, 12);
-        stack.read(hdr.stack[13].value, 13);
-        stack.read(hdr.stack[14].value, 14);
-        stack.read(hdr.stack[15].value, 15);
-        stack.read(hdr.stack[16].value, 16);
-        stack.read(hdr.stack[17].value, 17);
-        stack.read(hdr.stack[18].value, 18);
-        stack.read(hdr.stack[19].value, 19);
-        stack.read(hdr.stack[20].value, 20);
-        stack.read(hdr.stack[21].value, 21);
-        stack.read(hdr.stack[22].value, 22);
-        stack.read(hdr.stack[23].value, 23);
-        stack.read(hdr.stack[24].value, 24);
-        stack.read(hdr.stack[25].value, 25);
-        stack.read(hdr.stack[26].value, 26);
-        stack.read(hdr.stack[27].value, 27);
-        stack.read(hdr.stack[28].value, 28);
-        stack.read(hdr.stack[29].value, 29);
-        stack.read(hdr.stack[30].value, 30);
-        stack.read(hdr.stack[31].value, 31);
+        {% deparse_stack %}
     }
 
     action read_current_instr() {
@@ -702,7 +578,7 @@ control MyIngress(inout headers hdr,
     }
 
     action instr_metadata() {
-        // this is specific to v1model
+        // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
@@ -726,7 +602,7 @@ control MyIngress(inout headers hdr,
     }
 
     action instr_setegress() {
-        // this is specific to v1model
+        // TARGET-SPECIFIC
         int<32> top;
         stack.read(top, hdr.pdata.sp - 32w1);
         idrop();
@@ -847,36 +723,34 @@ control MyIngress(inout headers hdr,
 
     apply {
         ipv4_lpm.apply();
-        if (hdr.pdata.isValid()) {
-            // if ingress is not self-fwd then write metadata fields
-            if (standard_metadata.ingress_port != 9w{% self_fwd_inport %}) {
-                hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
-                hdr.my_metadata.packet_length = standard_metadata.packet_length;
-                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
-                hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
-            }
-            if (hdr.pdata.done_flg == 1w1) {
-                hdr.pdata.done_flg = 1w0;
-                hdr.pdata.pc = 32w0;
-                hdr.pdata.steps = 32w0;
-            } 
-            else if (hdr.pdata.err_flg == 1w1) { } 
-            else if (hdr.pdata.steps > MAX_STEPS) {
-                hdr.pdata.err_flg = 1w1;
-            } 
-            else {
-                // forward to self
-                standard_metadata.egress_spec = 9w{% self_fwd_outport %};
-                // don't decrement ttl for self-forwarding
-                hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
-                parse_instructions();
-                parse_stack();
-                read_current_instr();
-                instruction_table.apply();
-                increment_steps();
-                deparse_stack();
-            }
+        // if ingress is not self-fwd then write metadata fields
+        if (standard_metadata.ingress_port != 9w5) {
+            hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
+            hdr.my_metadata.packet_length = standard_metadata.packet_length;
+            hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+            hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+            hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
+        }
+        if (hdr.pdata.done_flg == 1w1) {
+            hdr.pdata.done_flg = 1w0;
+            hdr.pdata.pc = 32w0;
+            hdr.pdata.steps = 32w0;
+        } 
+        else if (hdr.pdata.err_flg == 1w1) { } 
+        else if (hdr.pdata.steps > MAX_STEPS) {
+            hdr.pdata.err_flg = 1w1;
+        } 
+        else {
+            // forward to self
+            standard_metadata.egress_spec = 9w4;
+            // don't decrement ttl for self-forwarding
+            hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
+            parse_instructions();
+            parse_stack();
+            read_current_instr();
+            instruction_table.apply();
+            increment_steps();
+            deparse_stack();
         }
     }
 }

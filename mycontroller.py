@@ -5,6 +5,7 @@ import os
 import sys
 from time import sleep
 from headers import *
+from stitch import *
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'utils/'))
 import run_exercise

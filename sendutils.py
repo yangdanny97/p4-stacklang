@@ -5,11 +5,11 @@ import socket
 import random
 import struct
 from headers import *
+from stitch import *
 
 from scapy.all import srp1, sniff, sendp, send, get_if_list, get_if_hwaddr
 from scapy.all import Packet
 from scapy.all import Ether, IP, UDP, TCP
-import threading
 
 
 def send_probe(instrs, stk):   

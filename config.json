@@ -1,0 +1,15 @@
+{
+    "stack-size": 32,
+    "n-instrs": 32,
+    "n-registers": 32,
+    "n-steps": 250,
+    "self-fwd-outport": 4,
+    "self-fwd-inport": 5,
+    "switch-metadata": {
+        "ingress_port": 0,
+        "packet_length": 1,
+        "enq_qdepth": 2,
+        "deq_qdepth": 3,
+        "egresss_spec": 4
+    }
+}
