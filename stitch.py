@@ -190,7 +190,7 @@ def checkval(config, key, val):
 
 # config is a config object (dictionary representation of config.json)
 # performs some basic sanity checks on the program
-def parsefile(filename, config):
+def processfile(filename, config):
     instructions = []
     stack = []
     linecount = 0
@@ -305,11 +305,11 @@ def parsefile(filename, config):
         raise Exception("maximum stack size exceeded!")
     return instructions, stack
 
-# input: program source file name, config object, packet to attach program to
+# input: program source file name, packet to attach program to
 # output: packet with attached program
-def stitch_program(f, config, packet):
-    instructions, stack = parsefile(f, config)
-    return build_packet(packet, instructions, stack)
+def stitch_program(f, pkt):
+    with open("config.json","r") as config:
+        config_json = json.load(config)
+        instructions, stack = processfile(f, config_json)
+        return build_packet(pkt, instructions, stack)
 
-
-    
