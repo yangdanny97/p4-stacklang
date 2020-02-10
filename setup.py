@@ -1,10 +1,9 @@
 import json
 
 def load_topology(config):
-    topology = None
-    with open("topology.json","r") as f:
-        topology = json.load(f)
-    return topology
+    with open("topology.json","w") as f:
+        json.dump(config["topology"])
+    return config["topology"]
 
 def setup_switch(config):
     with open("./templates/switch-template.txt", "r") as f:
