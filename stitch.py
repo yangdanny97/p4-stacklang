@@ -153,6 +153,8 @@ v1model:
 2 enq_qdepth;
 3 deq_qdepth;
 4 egresss_spec;
+5 enq_timestamp;
+6 deq_timedelta;
 '''
 def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)

@@ -3,8 +3,6 @@
     "n-instrs": 64,
     "n-registers": 32,
     "n-steps": 250,
-    "self-fwd-outport": 99,
-    "self-fwd-inport": 100,
     "switch-metadata": {
         "ingress_port": 0,
         "packet_length": 1,

@@ -1,23 +1,9 @@
 import json
 
-def verify_topology(config):
+def load_topology(config):
     topology = None
     with open("topology.json","r") as f:
         topology = json.load(f)
-    hosts = topology["hosts"]
-    switches = topology["switches"]
-    links = topology["links"]
-    self_links = set(switches)
-    for l in links:
-        if "-" in l[0] and "-" in l[1]:
-            sl1 = l[0].split("-")
-            sl2 = l[1].split("-")
-            if sl1[0] == sl2[0] and sl1[0] in switches:
-                if ((int(sl2[1][1:]) == config["self-fwd-outport"] and int(sl1[1][1:]) == config["self-fwd-inport"]) or
-                    (int(sl1[1][1:]) == config["self-fwd-outport"] and int(sl2[1][1:]) == config["self-fwd-inport"])):
-                    self_links.remove(sl1[0])
-    if len(self_links) > 0:
-        raise Exception("switches need to be able to send packets to themselves using [self-fwd-inport] and [self-fwd-outport] in config.json")
     return topology
 
 def setup_switch(config):
@@ -58,7 +44,7 @@ def setup_controller(config, topology):
 def __main__():
     with open("config.json","r") as f:
         config = json.load(f)
-        topology = verify_topology(config)
+        topology = load_topology(config)
         setup_switch(config)
         setup_controller(config, topology)
 

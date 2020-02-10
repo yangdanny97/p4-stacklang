@@ -577,27 +577,42 @@ control MyIngress(inout headers hdr,
         increment_pc();
     }
 
-    action instr_metadata() {
+    action instr_metadata_ingress() {
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
+            ipush();
         } else
         if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
-        } else 
-        if (code == 2) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
-        } else 
-        if (code == 3) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
+            ipush();
         } else 
         if (code == 4) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.egress_spec;
-        } else {
-            hdr.pdata.curr_instr_arg = 0;
+            ipush();
         }
-        ipush();
+    }
+
+    action instr_metadata_egress() {
+        // TARGET-SPECIFIC
+        int<32> code = hdr.pdata.curr_instr_arg;
+        if (code == 2) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
+            ipush();
+        } else 
+        if (code == 3) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
+            ipush();
+        } else 
+        if (code == 5) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_timestamp;
+            ipush();
+        } else 
+        if (code == 6) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
+            ipush();
+        }
         increment_pc();
     }
 
@@ -633,7 +648,7 @@ control MyIngress(inout headers hdr,
         default_action = NoAction();
     }
 
-    table instruction_table {
+    table instruction_table_ingress {
         key = {
             hdr.pdata.curr_instr_opcode: exact;
         }
@@ -666,7 +681,7 @@ control MyIngress(inout headers hdr,
             instr_nop;
             instr_loadreg;
             instr_storereg;
-            instr_metadata;
+            instr_metadata_ingress;
             instr_sal;
             instr_sar;
             instr_not;
@@ -707,7 +722,7 @@ control MyIngress(inout headers hdr,
             0x19 : instr_nop();
             0x1A : instr_loadreg();
             0x1B : instr_storereg();
-            0x1C : instr_metadata();
+            0x1C : instr_metadata_ingress();
             0x1D : instr_sal();
             0x1E : instr_sar();
             0x1F : instr_not();
@@ -721,36 +736,59 @@ control MyIngress(inout headers hdr,
         } 
     }
 
+    table instruction_table_egress {
+        key = {
+            hdr.pdata.curr_instr_opcode: exact;
+        }
+        actions = {
+            instr_metadata_egress;
+            NoAction;
+        }
+        default_action = NoAction();
+        const entries = {
+            0x1C : instr_metadata_egress();
+        } 
+    }
+
     apply {
         ipv4_lpm.apply();
         // if ingress is not self-fwd then write metadata fields
-        if (standard_metadata.ingress_port != 9w<< self_fwd_inport >>) {
+        if (standard_metadata.ingress_port != PSA_PORT_RECIRCULATE) {
             hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
             hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
+
+        // done flag set -> continue to next hop, reset flags
         if (hdr.pdata.done_flg == 1w1) {
             hdr.pdata.done_flg = 1w0;
             hdr.pdata.pc = 32w0;
             hdr.pdata.steps = 32w0;
         } 
+        // error flag set -> continue to next hop
         else if (hdr.pdata.err_flg == 1w1) { } 
+        // max steps reached -> set error flag
         else if (hdr.pdata.steps > MAX_STEPS) {
             hdr.pdata.err_flg = 1w1;
-        } 
+        }
+        // regular instruction: run instruction and recirculate
+        // (unless egress port is over-ridden by circulation)
         else {
-            // forward to self
-            standard_metadata.egress_spec = 9w<< self_fwd_outport >>;
-            // don't decrement ttl for self-forwarding
-            hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
-            parse_instructions();
-            parse_stack();
-            read_current_instr();
-            instruction_table.apply();
-            increment_steps();
-            deparse_stack();
+            // atomic to prevent races when stack/instrs are temporarily moved to registers
+            @atomic {
+                // forward to self
+                standard_metadata.egress_spec = PSA_PORT_RECIRCULATE;
+                // don't decrement ttl for self-forwarding
+                hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
+                parse_instructions();
+                parse_stack();
+                read_current_instr();
+                instruction_table_ingress.apply();
+                increment_steps();
+                deparse_stack();
+            }
         }
     }
 }
@@ -762,7 +800,14 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
-    apply {  }
+    apply {
+        @atomic {
+            parse_stack();
+            read_current_instr();
+            instruction_table_egress.apply();
+            deparse_stack();
+        }  
+    }
 }
 
 /*************************************************************************
