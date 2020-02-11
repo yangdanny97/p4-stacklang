@@ -30,6 +30,9 @@ header my_metadata_t {
     bit<19> enq_qdepth;
     bit<19> deq_qdepth;
     bit<9> egress_spec;
+    bit<32> enq_timestamp;
+    bit<32> deq_timedelta;
+    bit<32> switch_id;
 }
 
 header pdata_t {
@@ -592,6 +595,10 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.egress_spec;
             ipush();
         }
+        if (code == 7) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
+            ipush();
+        }
     }
 
     action instr_metadata_egress() {
@@ -750,17 +757,32 @@ control MyIngress(inout headers hdr,
         } 
     }
 
+    action set_switch_id(int<32> switch_id) {
+        hdr.my_metadata.switch_id = switch_id;
+    }
+
+    table switch_id {
+        key = {
+            hdr.ipv4.protocol: exact;
+        }
+
+        actions {
+            set_switch_id;
+            NoAction;
+        }
+
+        default_action = NoAction();
+    }
+
     apply {
+        id_table.apply();
         ipv4_lpm.apply();
-        // if ingress is not self-fwd then write metadata fields
+
+        // if not recirculated then write metadata fields
         if (!IS_RECIRCULATED(standard_metadata)) {
             hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
-            hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-            hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
-            hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
-            hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
         }
 
         // done flag set -> continue to next hop, reset flags
@@ -803,6 +825,12 @@ control MyEgress(inout headers hdr,
                  inout standard_metadata_t standard_metadata) {
     apply {
         @atomic {
+            if (!IS_RECIRCULATED(standard_metadata)) {
+                hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+                hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
+                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+            }
             parse_stack();
             read_current_instr();
             instruction_table_egress.apply();

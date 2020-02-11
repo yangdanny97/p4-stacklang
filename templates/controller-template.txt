@@ -15,7 +15,22 @@ import p4runtime_lib.helper
 
 switches = {}
 p4info_helper = None
-    
+
+def addSwIDRule(switch, id):
+    # Helper function to install forwarding rules
+    table_entry = p4info_helper.buildTableEntry(
+        table_name="MyIngress.switch_id",
+        match_fields={
+            "hdr.ipv4.protocol": (0x8F, 8)
+        },
+        action_name="MyIngress.ipv4_forward",
+        action_params={
+            "switch_id": id,
+        })
+    bmv2_switch = switches[switch]
+    bmv2_switch.WriteTableEntry(table_entry)
+    print "Installed switch_id rule on %s" % switch
+
 def main(p4info_file_path, bmv2_file_path, topo_file_path):
     # Instantiate a P4Runtime helper from the p4info file
     global p4info_helper
@@ -37,6 +52,7 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
                                                     bmv2_json_file_path=bmv2_file_path)
             print "Installed P4 Program using SetForwardingPipelineConfig on %s" % bmv2_switch.name
             switches[switch] = bmv2_switch
+            addSwIDRule(switch, switch_id)
 
     except KeyboardInterrupt:
         print " Shutting down."
