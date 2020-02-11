@@ -753,12 +753,14 @@ control MyIngress(inout headers hdr,
     apply {
         ipv4_lpm.apply();
         // if ingress is not self-fwd then write metadata fields
-        if (standard_metadata.ingress_port != PSA_PORT_RECIRCULATE) {
+        if (!IS_RECIRCULATED(standard_metadata)) {
             hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
             hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
+            hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+            hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
         }
 
         // done flag set -> continue to next hop, reset flags
@@ -778,8 +780,6 @@ control MyIngress(inout headers hdr,
         else {
             // atomic to prevent races when stack/instrs are temporarily moved to registers
             @atomic {
-                // forward to self
-                standard_metadata.egress_spec = PSA_PORT_RECIRCULATE;
                 // don't decrement ttl for self-forwarding
                 hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
                 parse_instructions();
@@ -788,6 +788,7 @@ control MyIngress(inout headers hdr,
                 instruction_table_ingress.apply();
                 increment_steps();
                 deparse_stack();
+                recirculate(hdr);
             }
         }
     }
