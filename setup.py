@@ -1,9 +1,24 @@
 import json
 
 def load_topology(config):
+    topology = config["topology"]
+    hosts = topology["hosts"]
+    switches = topology["switches"]
+    links = topology["links"]
+    self_links = set(switches)
+    for l in links:
+        if "-" in l[0] and "-" in l[1]:
+            sl1 = l[0].split("-")
+            sl2 = l[1].split("-")
+            if sl1[0] == sl2[0] and sl1[0] in switches:
+                if ((int(sl2[1][1:]) == config["recirculate-out"] and int(sl1[1][1:]) == config["recirculate-in"]) or
+                    (int(sl1[1][1:]) == config["recirculate-out"] and int(sl2[1][1:]) == config["recirculate-in"])):
+                    self_links.remove(sl1[0])
+    if len(self_links) > 0:
+        raise Exception("switches need to be able to send packets to themselves using ports [recirculate_in] and [recirculate_out] in config.json")
     with open("topology.json","w") as f:
-        json.dump(config["topology"], f)
-    return config["topology"]
+        json.dump(topology, f)
+    return topology
 
 def setup_switch(config):
     with open("./templates/switch-template.p4", "r") as f:
@@ -27,6 +42,8 @@ def setup_switch(config):
         switch = switch.replace("<< parse_args >>", "".join(parse_args))
         switch = switch.replace("<< parse_stack >>", "".join(parse_stack))
         switch = switch.replace("<< deparse_stack >>", "".join(deparse_stack))
+        switch = switch.replace("<< recirculate_out >>", str(config["recirculate-out"]))
+        switch = switch.replace("<< recirculate_in >>", str(config["recirculate-in"]))
         with open("switch.p4", "w") as outfile:
             outfile.write(switch)
 

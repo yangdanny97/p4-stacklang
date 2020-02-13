@@ -10,6 +10,8 @@
         "deq_qdepth": 3,
         "egresss_spec": 4
     },
+    "recirculate-out": 6,
+    "recirculate-in": 7,
     "topology": {
         "hosts": {
             "h1": {
@@ -168,7 +170,11 @@
     
             ["s1-p4", "s2-p4"],
             ["s2-p5", "s3-p5"],
-            ["s3-p4", "s1-p5"]
+            ["s3-p4", "s1-p5"],
+
+            ["s1-p6", "s1-p7"],
+            ["s2-p6", "s2-p7"],
+            ["s3-p6", "s3-p7"]
         ]
     }, 
     "forwarding_rules": [

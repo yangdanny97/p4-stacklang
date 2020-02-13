@@ -777,42 +777,30 @@ control MyIngress(inout headers hdr,
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
-            ipush();
         } else
         if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
-            ipush();
         } else 
+        if (code == 2) { // egress
+            hdr.pdata.curr_instr_arg = 0;
+        } else
+        if (code == 3) { // egress
+            hdr.pdata.curr_instr_arg = 0;
+        } else
         if (code == 4) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.egress_spec;
-            ipush();
-        }
+        } else
+        if (code == 5) { // egress
+            hdr.pdata.curr_instr_arg = 0;
+        } else
+        if (code == 6) { // egress
+            hdr.pdata.curr_instr_arg = 0;
+        } else
         if (code == 7) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
-            ipush();
         }
-    }
-
-    action instr_metadata_egress() {
-        // TARGET-SPECIFIC
-        int<32> code = hdr.pdata.curr_instr_arg;
-        if (code == 2) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
-            ipush();
-        } else 
-        if (code == 3) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
-            ipush();
-        } else 
-        if (code == 5) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_timestamp;
-            ipush();
-        } else 
-        if (code == 6) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
-            ipush();
-        }
-        increment_pc();
+        ipush();
+        // don't increment PC until egress
     }
 
     action instr_setegress() {
@@ -821,8 +809,7 @@ control MyIngress(inout headers hdr,
         stack.read(top, hdr.pdata.sp - 32w1);
         idrop();
         standard_metadata.egress_spec = (bit<9>) (bit<32>) top;
-        hdr.pdata.steps = 32w0;
-        hdr.pdata.pc = 32w0;
+        hdr.pdata.done_flg = 1w1;
     }
 
     action drop() {
@@ -935,20 +922,6 @@ control MyIngress(inout headers hdr,
         } 
     }
 
-    table instruction_table_egress {
-        key = {
-            hdr.pdata.curr_instr_opcode: exact;
-        }
-        actions = {
-            instr_metadata_egress;
-            NoAction;
-        }
-        default_action = NoAction();
-        const entries = {
-            0x1C : instr_metadata_egress();
-        } 
-    }
-
     action set_switch_id(int<32> switch_id) {
         hdr.my_metadata.switch_id = switch_id;
     }
@@ -971,18 +944,14 @@ control MyIngress(inout headers hdr,
         ipv4_lpm.apply();
 
         // if not recirculated then write metadata fields
-        if (!IS_RECIRCULATED(standard_metadata)) {
+        if (standard_metadata.ingress_port != 9w7) {
             hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
 
-        // done flag set -> continue to next hop, reset flags
-        if (hdr.pdata.done_flg == 1w1) {
-            hdr.pdata.done_flg = 1w0;
-            hdr.pdata.pc = 32w0;
-            hdr.pdata.steps = 32w0;
-        } 
+        // done flag set -> continue to next hop
+        if (hdr.pdata.done_flg == 1w1) { } 
         // error flag set -> continue to next hop
         else if (hdr.pdata.err_flg == 1w1) { } 
         // max steps reached -> set error flag
@@ -1002,7 +971,7 @@ control MyIngress(inout headers hdr,
                 instruction_table_ingress.apply();
                 increment_steps();
                 deparse_stack();
-                recirculate(hdr);
+                standard_metadata.egress_spec = 9w6;
             }
         }
     }
@@ -1015,13 +984,295 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t standard_metadata) {
+
+    register<int<32>>(STACK_SIZE) stack;
+    register<bit<8>>(MAX_INSTRS) opcodes;
+    register<int<32>>(MAX_INSTRS) args;
+    register<int<32>>(NUM_REGISTERS) swregs;
+
+    action parse_instructions() {
+        opcodes.write(0, hdr.instructions[0].opcode);
+        opcodes.write(1, hdr.instructions[1].opcode);
+        opcodes.write(2, hdr.instructions[2].opcode);
+        opcodes.write(3, hdr.instructions[3].opcode);
+        opcodes.write(4, hdr.instructions[4].opcode);
+        opcodes.write(5, hdr.instructions[5].opcode);
+        opcodes.write(6, hdr.instructions[6].opcode);
+        opcodes.write(7, hdr.instructions[7].opcode);
+        opcodes.write(8, hdr.instructions[8].opcode);
+        opcodes.write(9, hdr.instructions[9].opcode);
+        opcodes.write(10, hdr.instructions[10].opcode);
+        opcodes.write(11, hdr.instructions[11].opcode);
+        opcodes.write(12, hdr.instructions[12].opcode);
+        opcodes.write(13, hdr.instructions[13].opcode);
+        opcodes.write(14, hdr.instructions[14].opcode);
+        opcodes.write(15, hdr.instructions[15].opcode);
+        opcodes.write(16, hdr.instructions[16].opcode);
+        opcodes.write(17, hdr.instructions[17].opcode);
+        opcodes.write(18, hdr.instructions[18].opcode);
+        opcodes.write(19, hdr.instructions[19].opcode);
+        opcodes.write(20, hdr.instructions[20].opcode);
+        opcodes.write(21, hdr.instructions[21].opcode);
+        opcodes.write(22, hdr.instructions[22].opcode);
+        opcodes.write(23, hdr.instructions[23].opcode);
+        opcodes.write(24, hdr.instructions[24].opcode);
+        opcodes.write(25, hdr.instructions[25].opcode);
+        opcodes.write(26, hdr.instructions[26].opcode);
+        opcodes.write(27, hdr.instructions[27].opcode);
+        opcodes.write(28, hdr.instructions[28].opcode);
+        opcodes.write(29, hdr.instructions[29].opcode);
+        opcodes.write(30, hdr.instructions[30].opcode);
+        opcodes.write(31, hdr.instructions[31].opcode);
+        opcodes.write(32, hdr.instructions[32].opcode);
+        opcodes.write(33, hdr.instructions[33].opcode);
+        opcodes.write(34, hdr.instructions[34].opcode);
+        opcodes.write(35, hdr.instructions[35].opcode);
+        opcodes.write(36, hdr.instructions[36].opcode);
+        opcodes.write(37, hdr.instructions[37].opcode);
+        opcodes.write(38, hdr.instructions[38].opcode);
+        opcodes.write(39, hdr.instructions[39].opcode);
+        opcodes.write(40, hdr.instructions[40].opcode);
+        opcodes.write(41, hdr.instructions[41].opcode);
+        opcodes.write(42, hdr.instructions[42].opcode);
+        opcodes.write(43, hdr.instructions[43].opcode);
+        opcodes.write(44, hdr.instructions[44].opcode);
+        opcodes.write(45, hdr.instructions[45].opcode);
+        opcodes.write(46, hdr.instructions[46].opcode);
+        opcodes.write(47, hdr.instructions[47].opcode);
+        opcodes.write(48, hdr.instructions[48].opcode);
+        opcodes.write(49, hdr.instructions[49].opcode);
+        opcodes.write(50, hdr.instructions[50].opcode);
+        opcodes.write(51, hdr.instructions[51].opcode);
+        opcodes.write(52, hdr.instructions[52].opcode);
+        opcodes.write(53, hdr.instructions[53].opcode);
+        opcodes.write(54, hdr.instructions[54].opcode);
+        opcodes.write(55, hdr.instructions[55].opcode);
+        opcodes.write(56, hdr.instructions[56].opcode);
+        opcodes.write(57, hdr.instructions[57].opcode);
+        opcodes.write(58, hdr.instructions[58].opcode);
+        opcodes.write(59, hdr.instructions[59].opcode);
+        opcodes.write(60, hdr.instructions[60].opcode);
+        opcodes.write(61, hdr.instructions[61].opcode);
+        opcodes.write(62, hdr.instructions[62].opcode);
+        opcodes.write(63, hdr.instructions[63].opcode);
+
+        args.write(0, hdr.instructions[0].arg);
+        args.write(1, hdr.instructions[1].arg);
+        args.write(2, hdr.instructions[2].arg);
+        args.write(3, hdr.instructions[3].arg);
+        args.write(4, hdr.instructions[4].arg);
+        args.write(5, hdr.instructions[5].arg);
+        args.write(6, hdr.instructions[6].arg);
+        args.write(7, hdr.instructions[7].arg);
+        args.write(8, hdr.instructions[8].arg);
+        args.write(9, hdr.instructions[9].arg);
+        args.write(10, hdr.instructions[10].arg);
+        args.write(11, hdr.instructions[11].arg);
+        args.write(12, hdr.instructions[12].arg);
+        args.write(13, hdr.instructions[13].arg);
+        args.write(14, hdr.instructions[14].arg);
+        args.write(15, hdr.instructions[15].arg);
+        args.write(16, hdr.instructions[16].arg);
+        args.write(17, hdr.instructions[17].arg);
+        args.write(18, hdr.instructions[18].arg);
+        args.write(19, hdr.instructions[19].arg);
+        args.write(20, hdr.instructions[20].arg);
+        args.write(21, hdr.instructions[21].arg);
+        args.write(22, hdr.instructions[22].arg);
+        args.write(23, hdr.instructions[23].arg);
+        args.write(24, hdr.instructions[24].arg);
+        args.write(25, hdr.instructions[25].arg);
+        args.write(26, hdr.instructions[26].arg);
+        args.write(27, hdr.instructions[27].arg);
+        args.write(28, hdr.instructions[28].arg);
+        args.write(29, hdr.instructions[29].arg);
+        args.write(30, hdr.instructions[30].arg);
+        args.write(31, hdr.instructions[31].arg);
+        args.write(32, hdr.instructions[32].arg);
+        args.write(33, hdr.instructions[33].arg);
+        args.write(34, hdr.instructions[34].arg);
+        args.write(35, hdr.instructions[35].arg);
+        args.write(36, hdr.instructions[36].arg);
+        args.write(37, hdr.instructions[37].arg);
+        args.write(38, hdr.instructions[38].arg);
+        args.write(39, hdr.instructions[39].arg);
+        args.write(40, hdr.instructions[40].arg);
+        args.write(41, hdr.instructions[41].arg);
+        args.write(42, hdr.instructions[42].arg);
+        args.write(43, hdr.instructions[43].arg);
+        args.write(44, hdr.instructions[44].arg);
+        args.write(45, hdr.instructions[45].arg);
+        args.write(46, hdr.instructions[46].arg);
+        args.write(47, hdr.instructions[47].arg);
+        args.write(48, hdr.instructions[48].arg);
+        args.write(49, hdr.instructions[49].arg);
+        args.write(50, hdr.instructions[50].arg);
+        args.write(51, hdr.instructions[51].arg);
+        args.write(52, hdr.instructions[52].arg);
+        args.write(53, hdr.instructions[53].arg);
+        args.write(54, hdr.instructions[54].arg);
+        args.write(55, hdr.instructions[55].arg);
+        args.write(56, hdr.instructions[56].arg);
+        args.write(57, hdr.instructions[57].arg);
+        args.write(58, hdr.instructions[58].arg);
+        args.write(59, hdr.instructions[59].arg);
+        args.write(60, hdr.instructions[60].arg);
+        args.write(61, hdr.instructions[61].arg);
+        args.write(62, hdr.instructions[62].arg);
+        args.write(63, hdr.instructions[63].arg);
+
+    }
+
+    action parse_stack() {
+        stack.write(0, hdr.stack[0].value);
+        stack.write(1, hdr.stack[1].value);
+        stack.write(2, hdr.stack[2].value);
+        stack.write(3, hdr.stack[3].value);
+        stack.write(4, hdr.stack[4].value);
+        stack.write(5, hdr.stack[5].value);
+        stack.write(6, hdr.stack[6].value);
+        stack.write(7, hdr.stack[7].value);
+        stack.write(8, hdr.stack[8].value);
+        stack.write(9, hdr.stack[9].value);
+        stack.write(10, hdr.stack[10].value);
+        stack.write(11, hdr.stack[11].value);
+        stack.write(12, hdr.stack[12].value);
+        stack.write(13, hdr.stack[13].value);
+        stack.write(14, hdr.stack[14].value);
+        stack.write(15, hdr.stack[15].value);
+        stack.write(16, hdr.stack[16].value);
+        stack.write(17, hdr.stack[17].value);
+        stack.write(18, hdr.stack[18].value);
+        stack.write(19, hdr.stack[19].value);
+        stack.write(20, hdr.stack[20].value);
+        stack.write(21, hdr.stack[21].value);
+        stack.write(22, hdr.stack[22].value);
+        stack.write(23, hdr.stack[23].value);
+        stack.write(24, hdr.stack[24].value);
+        stack.write(25, hdr.stack[25].value);
+        stack.write(26, hdr.stack[26].value);
+        stack.write(27, hdr.stack[27].value);
+        stack.write(28, hdr.stack[28].value);
+        stack.write(29, hdr.stack[29].value);
+        stack.write(30, hdr.stack[30].value);
+        stack.write(31, hdr.stack[31].value);
+
+    }
+
+    action deparse_stack() {
+        stack.read(hdr.stack[0].value, 0);
+        stack.read(hdr.stack[1].value, 1);
+        stack.read(hdr.stack[2].value, 2);
+        stack.read(hdr.stack[3].value, 3);
+        stack.read(hdr.stack[4].value, 4);
+        stack.read(hdr.stack[5].value, 5);
+        stack.read(hdr.stack[6].value, 6);
+        stack.read(hdr.stack[7].value, 7);
+        stack.read(hdr.stack[8].value, 8);
+        stack.read(hdr.stack[9].value, 9);
+        stack.read(hdr.stack[10].value, 10);
+        stack.read(hdr.stack[11].value, 11);
+        stack.read(hdr.stack[12].value, 12);
+        stack.read(hdr.stack[13].value, 13);
+        stack.read(hdr.stack[14].value, 14);
+        stack.read(hdr.stack[15].value, 15);
+        stack.read(hdr.stack[16].value, 16);
+        stack.read(hdr.stack[17].value, 17);
+        stack.read(hdr.stack[18].value, 18);
+        stack.read(hdr.stack[19].value, 19);
+        stack.read(hdr.stack[20].value, 20);
+        stack.read(hdr.stack[21].value, 21);
+        stack.read(hdr.stack[22].value, 22);
+        stack.read(hdr.stack[23].value, 23);
+        stack.read(hdr.stack[24].value, 24);
+        stack.read(hdr.stack[25].value, 25);
+        stack.read(hdr.stack[26].value, 26);
+        stack.read(hdr.stack[27].value, 27);
+        stack.read(hdr.stack[28].value, 28);
+        stack.read(hdr.stack[29].value, 29);
+        stack.read(hdr.stack[30].value, 30);
+        stack.read(hdr.stack[31].value, 31);
+
+    }
+
+    action read_current_instr() {
+        opcodes.read(hdr.pdata.curr_instr_opcode, hdr.pdata.pc);
+        args.read(hdr.pdata.curr_instr_arg, hdr.pdata.pc);
+    }
+
+    action increment_pc() {
+        hdr.pdata.pc = hdr.pdata.pc + 32w1;
+    }
+
+    action ipush() {
+        stack.write(hdr.pdata.sp, hdr.pdata.curr_instr_arg);
+        hdr.pdata.sp = hdr.pdata.sp + 32w1;
+    }
+
+    action instr_metadata_egress() {
+        // TARGET-SPECIFIC
+        int<32> code = hdr.pdata.curr_instr_arg;
+        // for metadata read during egress, ingress pushed a 0
+        if (code == 2 || code == 3 || code == 5 || code == 6) {
+            hdr.pdata.sp = hdr.pdata.sp - 32w1;
+        }
+        if (code == 0) { // ingress 
+            hdr.pdata.curr_instr_arg = 0;
+        } else 
+        if (code == 1) { // ingress 
+            hdr.pdata.curr_instr_arg = 0;
+        } else 
+        if (code == 2) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
+        } else 
+        if (code == 3) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
+        } else 
+        if (code == 4) { // ingress 
+            hdr.pdata.curr_instr_arg = 0;
+        } else 
+        if (code == 5) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_timestamp;
+        } else 
+        if (code == 6) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
+        } else
+        if (code == 7) { // ingress 
+            hdr.pdata.curr_instr_arg = 0;
+        }
+        ipush();
+        // for metadata already pushed during ingress, egress pushed a 0
+        if (code == 0 || code == 1 || code == 4 || code == 7) {
+            hdr.pdata.sp = hdr.pdata.sp - 32w1;
+        }
+        increment_pc();
+    }
+
+    table instruction_table_egress {
+        key = {
+            hdr.pdata.curr_instr_opcode: exact;
+        }
+        actions = {
+            instr_metadata_egress;
+            NoAction;
+        }
+        default_action = NoAction();
+        const entries = {
+            0x1C : instr_metadata_egress();
+        } 
+    }
+            
     apply {
         @atomic {
-            if (!IS_RECIRCULATED(standard_metadata)) {
-                hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
-                hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
-                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+            hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+            hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
+            hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+            hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+
+            if (hdr.pdata.done_flg == 1w1) {
+                hdr.pdata.done_flg = 1w0;
+                hdr.pdata.steps = 32w0;
+                hdr.pdata.pc = 32w0;
             }
             parse_stack();
             read_current_instr();
