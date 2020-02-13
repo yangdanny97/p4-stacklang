@@ -284,8 +284,10 @@ def processfile(filename, config):
                 elif instr == "varstorereg":
                     instructions.append(VARSTOREREG())
                 elif instr == "metadata":
-                    if i[1] not in config["switch-metadata"]:
+                    if i[1] not in config["switch-metadata"] and i[1] not in list(config["switch-metadata"].values()):
                         raise Exception("unknown metadata field!")
+                    elif isinstance(i[1], int):
+                        instructions.append(METADATA(i[1]))
                     else:
                         field_idx = config["switch-metadata"][i[1]]
                         instructions.append(METADATA(field_idx))
