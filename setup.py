@@ -6,7 +6,7 @@ def load_topology(config):
     return config["topology"]
 
 def setup_switch(config):
-    with open("./templates/switch-template.txt", "r") as f:
+    with open("./templates/switch-template.p4", "r") as f:
         switch = f.read()
         switch = switch.replace("<< max_steps >>", str(config["n-steps"]))
         switch = switch.replace("<< stack_size >>", str(config["stack-size"]))
@@ -32,7 +32,7 @@ def setup_switch(config):
 
 def setup_controller(config, topology):
     switches = [x.encode('ascii') for x in list(topology["switches"])]
-    with open("./templates/controller-template.txt", "r") as f:
+    with open("./templates/controller-template.py", "r") as f:
         controller = f.read()
         controller = controller.replace("<< switches >>", str(switches))
         forwarding_rules = []

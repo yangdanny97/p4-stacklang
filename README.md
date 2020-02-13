@@ -10,37 +10,42 @@ Active networking is a networking paradigm that allows user-defined computations
 
 ## Example Programs
 
-To run the examples, first run `make`, then follow the instructions below.
+To run the examples, first configure the `config.json` and run `make setup`. This will generate `switch.p4`, `controller.py`, and `topology.json` based on the specified configs.
 
-Use a separate tab in the terminal to run the controller after the switch is done compiling. To run programs on the hosts, in the mininet cli which appears after you run `make`, run `xterm` followed by the hosts you want to open (ex: `xterm h1 h2 h3`).
+In the config, there is an example configuration and topology already set. The `populate_fwd_table` field determines if the ipv4 lpb table in the switch will be populated with the specified fowarding rules.
 
-There are two controller files:
-- `mycontroller.py` sets up the regular ipv4 lpm forwarding table and instruction tables
-- `mycontroller_nofwd.py` only sets up the instruction tables, with no forwarding rules - this isn't strictly necessary since Stitch programs can override this forwarding behavior, but I want to show that forwarding tables are not used at all for some of the examples
+Run `make` to compile the p4 switch.
+
+Use a separate tab in the terminal to run the controller after the switch is done compiling. To run programs on the hosts, in the mininet CLI which appears after you run `make`, run `xterm` followed by the hosts you want to open (ex: `xterm h1 h2 h3`).
 
 You'll notice that when sending the stack is represented as a stack of StackVal headers, but when receiving the stack is represented as a single Stack header with 32 fields. This is intentional and mainly for the purposes of having a nice printout as well as making sure Scapy can separate the stack from any raw payload that comes after it.
 
-The topology for these examples is as follows (the definition can be found in `topology.json`):
+The topology for these examples is a triangle of switches each connected to 3 hosts (the definition can be found in `config.json`):
 
 |    | s1    | s2    | s3    |
 |----|-------|-------|-------|
-| p1 | h1    | h2    | h3    |
-| p2 | s2-p2 | s1-p2 | s1-p3 |
-| p3 | s3-p2 | s3-p3 | s2-p3 |
+| p1 | h1    | h4    | h7    |
+| p2 | h2    | h5    | h8    |
+| p3 | h3    | h6    | h9    |
+| p4 | s2-p4 | s1-p4 | s1-p5 |
+| p5 | s3-p4 | s3-p5 | s2-p5 |
+
 
 Additionally, p4 of each switch is set to forward the packet back to p5 on the same switch.
 
 #### Example: Factorial/Fibonacci
 Stitch programs for performing mathematical calculations.
 
-- run either controller
+- run the setup script, and compile
+- run `controller.py`
 - run the desired factorial/fibonacci file on any host
 - example: `./ex_factorial.py 5` calculates `5!` and returns the packet with the result (in the `result` field of the pdata header) to the sender (inputs to factorial/fibonnacci should keep in mind stack size limitations and integer overflow)
 
 #### Example: Dropped packets detector
 Detect and count dropped packets on a particular path.
 
-- run `mycontroller.py`
+- set `populate_fwd_table` to `true`, run the setup script, and compile
+- run `controller.py`
 - run `receive.py` on the desired destination host
 - run `ex_dropped_packets.py` on the sender host
 - arguments: destination, num_total_packets, num_dropped_packets
@@ -49,7 +54,8 @@ Detect and count dropped packets on a particular path.
 #### Example: Match-action table
 Simulate a match-action table using Stitch using registers, and send programs which use the simulated table to forward themselves to the destination.
 
-- run `mycontroller_nofwd.py`
+- set `populate_fwd_table` to `false`, run the setup script, and compile
+- run `controller.py`
 - run `ex_routing_table_setup.py` from h1, this sets up the registers on each switch to be a forwarding table.
 - run `receive.py` on the desired destination host
 - run `ex_routing_table_message.py` on the sender host with the destination (host number, not the IP address) as input
@@ -58,7 +64,8 @@ Simulate a match-action table using Stitch using registers, and send programs wh
 #### Example: Source routing
 Simple source routing using Stitch.
 
-- run `mycontroller_nofwd.py`
+- set `populate_fwd_table` to `false`, run the setup script, and compile
+- run `controller.py`
 - run `receive.py` on the desired destination host
 - run `ex_source_routing.py` with the message and the list of egress ports separated by spaces
 - example: sending from h1 to h2 `ex_source_routing.py hello 2 3 2 2 1`
