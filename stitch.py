@@ -198,27 +198,25 @@ def processfile(filename, config):
     stack = []
     linecount = 0
     with open(filename, "r") as f:
+        program = json.load(f)
+        instructions = program["instructions"]
+        stack = [STACK(v) for v in program["stack"]]
         try:
-            for line in f:
+            for i in instructions:
                 linecount += 1
-                line = line.strip()
-                line = line.replace("//", " //")
-                if line == "" or line.startswith("//"):
-                    continue
-                l = line.split()
-                instr = l[0].lower()
+                instr = i[0].lower()
                 if instr == "load":
-                    checkval(config, "stack-size", int(l[1]))
-                    instructions.append(LOAD(int(l[1])))
+                    checkval(config, "stack-size", int(i[1]))
+                    instructions.append(LOAD(int(i[1])))
                 elif instr == "store":
-                    checkval(config, "stack-size", int(l[1]))
-                    instructions.append(STORE(int(l[1])))
+                    checkval(config, "stack-size", int(i[1]))
+                    instructions.append(STORE(int(i[1])))
                 elif instr == "varload":
                     instructions.append(VARLOAD())
                 elif instr == "varstore":
                     instructions,aooend(VARSTORE())
                 elif instr == "push":
-                    instructions.append(PUSH(int(l[1])))
+                    instructions.append(PUSH(int(i[1])))
                 elif instr == "drop":
                     instructions.append(DROP())
                 elif instr == "add":
@@ -262,11 +260,11 @@ def processfile(filename, config):
                 elif instr == "rot":
                     instructions.append(ROT())
                 elif instr == "jump":
-                    checkval(config, "n-instrs", int(l[1]))
-                    instructions.append(JUMP(int(l[1])))
+                    checkval(config, "n-instrs", int(i[1]))
+                    instructions.append(JUMP(int(i[1])))
                 elif instr == "cjump":
-                    checkval(config, "n-instrs", int(l[1]))
-                    instructions.append(CJUMP(int(l[1])))
+                    checkval(config, "n-instrs", int(i[1]))
+                    instructions.append(CJUMP(int(i[1])))
                 elif instr == "done":
                     instructions.append(DONE())
                 elif instr == "setresult":
@@ -276,32 +274,27 @@ def processfile(filename, config):
                 elif instr == "error":
                     instructions.append(ERROR())
                 elif instr == "loadreg":
-                    checkval(config, "n-registers", int(l[1]))
-                    instructions.append(LOADREG(int(l[1])))
+                    checkval(config, "n-registers", int(i[1]))
+                    instructions.append(LOADREG(int(i[1])))
                 elif instr == "storereg":
-                    checkval(config, "n-registers", int(l[1]))
-                    instructions.append(STOREREG(int(l[1])))
+                    checkval(config, "n-registers", int(i[1]))
+                    instructions.append(STOREREG(int(i[1])))
                 elif instr == "varloadreg":
                     instructions.append(VARLOADREG())
                 elif instr == "varstorereg":
                     instructions.append(VARSTOREREG())
                 elif instr == "metadata":
-                    if l[1] not in config["switch-metadata"]:
+                    if i[1] not in config["switch-metadata"]:
                         raise Exception("unknown metadata field!")
                     else:
-                        field_idx = config["switch-metadata"][l[1]]
+                        field_idx = config["switch-metadata"][i[1]]
                         instructions.append(METADATA(field_idx))
-                else:
-                    raise Exception("no such instruction")
                 elif instr == "setegress":
                     instructions.append(SETEGRESS())
-                elif instr == "stack":
-                    for i in l[1:]:
-                        if i.startswith("//"):
-                            break
-                        stack.append(STACK(int(i)))
+                else:
+                    raise Exception("no such instruction")
         except:
-            print "error processing line %s" % str(linecount)
+            print "error processing instruction %s" % str(linecount)
             print sys.exc_info()[0]
     if len(instructions) > config["n-instrs"]:
         raise Exception("maximum instruction count exceeded!")
@@ -311,9 +304,15 @@ def processfile(filename, config):
 
 # input: program source file name, packet to attach program to
 # output: packet with attached program
-def stitch_program(f, pkt):
+def attach_program(f, pkt):
     with open("config.json","r") as config:
         config_json = json.load(config)
         instructions, stack = processfile(f, config_json)
         return build_packet(pkt, instructions, stack)
 
+# input: program source file name
+# output: instructions, stack
+def load_program(f):
+    with open("config.json","r") as config:
+        config_json = json.load(config)
+        return processfile(f, config_json)

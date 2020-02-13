@@ -1,0 +1,10 @@
+{
+    "instructions": [
+        ["push", 1],
+        ["loadreg", 0],
+        ["add"],
+        ["storereg", 0],
+        ["setegress"]
+    ],
+    "stack": [511]
+}

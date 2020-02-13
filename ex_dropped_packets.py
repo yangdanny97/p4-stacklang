@@ -7,46 +7,8 @@ import struct
 import time
 from sendutils import *
 from headers import *
+from stitch import *
 
-
-# when switch receives packet, increment counter and drop
-def test_drop():
-    return ([
-        PUSH(1),
-        LOADREG(0),
-        ADD(),
-        STOREREG(0),
-        SETEGRESS(),
-    ], [
-        STACK(511),
-    ])
-
-# when switch receives packet, increment counter
-def test_counter():
-    return ([
-        PUSH(1),
-        LOADREG(0),
-        ADD(),
-        STOREREG(0),
-        DONE()
-    ], [])
-
-# return minimum counter value along path
-def test_min_counter():
-    return ([
-        LOAD(0),
-        LOADREG(0),
-        GTE(),
-        CJUMP(6),
-        LOADREG(0), # if counter < min, set min
-        STORE(0),
-        NOP(),
-        LOAD(0),
-        SETRESULT(),
-        DONE()
-    ], [
-        STACK(100),
-    ])
 
 def main():
     if len(sys.argv) < 4:
@@ -64,14 +26,17 @@ def main():
     random.shuffle(programs)
     for i in programs:
         if i == 0:
-            instrs, stk = test_counter()
+            # when switch receives packet, increment counter and drop
+            instrs, stk = load_program("examples/msg_incr_counter.json")
             send_pkt(addr, instrs, stk)
         else:
-            instrs, stk = test_drop()
+            # when switch receives packet, increment counter
+            instrs, stk = load_program("examples/msg_dropped.json")
             send_pkt(addr, instrs, stk)
         time.sleep(1)
 
-    instrs, stk = test_min_counter()
+    # return minimum counter value along path
+    instrs, stk = load_program("examples/test_min_counter.json")
     send_pkt(addr, instrs, stk)
 
 

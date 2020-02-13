@@ -2,7 +2,7 @@ import json
 
 def load_topology(config):
     with open("topology.json","w") as f:
-        json.dump(config["topology"])
+        json.dump(config["topology"], f)
     return config["topology"]
 
 def setup_switch(config):
@@ -13,8 +13,6 @@ def setup_switch(config):
         switch = switch.replace("<< max_instrs >>", str(config["n-instrs"]+1))
         switch = switch.replace("<< n_registers >>", str(config["n-registers"]))
         switch = switch.replace("<< max_steps >>", str(config["n-steps"]))
-        switch = switch.replace("<< self_fwd_inport >>", str(config["self-fwd-inport"]))
-        switch = switch.replace("<< self_fwd_outport >>", str(config["self-fwd-outport"]))
         parse_opcodes = []
         parse_args = []
         for i in range(config["n-instrs"]):
@@ -37,6 +35,11 @@ def setup_controller(config, topology):
     with open("./templates/controller-template.txt", "r") as f:
         controller = f.read()
         controller = controller.replace("<< switches >>", str(switches))
+        forwarding_rules = []
+        if config["populate_fwd_table"]:
+            for rule in config["forwarding_rules"]:
+                forwarding_rules.append("        addForwardingRule('%s', '%s', %s)\n" % (rule[0], rule[1], str(rule[2])))
+        controller = controller.replace("<< forwarding_rules >>", "".join(forwarding_rules))   
         with open("controller.py", "w") as outfile:
             outfile.write(controller)
 

@@ -1,0 +1,19 @@
+{
+    "instructions": [
+        ["storereg", 1],
+        ["storereg", 2],
+        ["storereg", 3],
+        ["storereg", 4],
+        ["storereg", 5],
+        ["storereg", 6],
+        ["storereg", 7],
+        ["storereg", 8],
+        ["storereg", 9],
+        ["setegress"]
+    ],
+    "stack": [
+        1,2,3,4,4,4,5,5,5,4,
+        4,4,4,1,2,3,5,5,5,5,
+        4,4,4,5,5,5,1,2,3,511
+    ]
+}
