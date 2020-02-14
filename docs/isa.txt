@@ -44,11 +44,14 @@ nop - does nothing
 
 metadata [n] - hardware specific; push the value of some standard metadata field [n] to top of stack; values are extended/truncated to fit
     implemented for v1model:
-    0 ingress_port
-    1 packet_length
-    2 enq_qdepth
-    3 deq_qdepth
-    4 egress_spec
+        0 ingress_port;
+        1 packet_length;
+        2 enq_qdepth;
+        3 deq_qdepth;
+        4 egresss_spec;
+        5 enq_timestamp;
+        6 deq_timedelta;
+        7 switch_id;
 
 setegress - pop top of stack and set egress spec to the port corresponding to that value; this ends the current execution of the program, and will emit the packet out of the specified port and reset the PC/steps fields in the program data header.
 

@@ -1,0 +1,12 @@
+{
+    "instructions": [
+        ["metadata", "ingress_port"],
+        ["dup"],
+        ["varloadreg"],
+        ["metadata", "packet_length"],
+        ["add"],
+        ["swap"],
+        ["varstorereg"]
+    ],
+    "stack": []
+}

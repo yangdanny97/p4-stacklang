@@ -1,0 +1,32 @@
+{
+    "instructions": [
+        ["dup"],
+        ["dup"],
+        ["varloadreg"],
+        ["load", 0],
+        ["varstore"],
+        ["push",0],
+        ["swap"],
+        ["varstorereg"],
+        ["push", 1],
+        ["load", 0],
+        ["add"],
+        ["store", 0],
+        ["setegress"]
+    ],
+    "stack": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        5,
+        5,
+        4,
+        5,
+        4
+    ]
+}
