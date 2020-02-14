@@ -608,7 +608,7 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
         }
         ipush();
-        // don't increment PC until egress
+        // push a placeholder 0 for egress-fields, don't increment PC until egress
     }
 
     action instr_setegress() {
@@ -796,7 +796,6 @@ control MyEgress(inout headers hdr,
     register<int<32>>(STACK_SIZE) stack;
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
-    register<int<32>>(NUM_REGISTERS) swregs;
 
     action parse_instructions() {
 << parse_opcodes >>
@@ -828,7 +827,7 @@ control MyEgress(inout headers hdr,
     action instr_metadata_egress() {
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
-        // for metadata read during egress, ingress pushed a 0
+        // for metadata read during egress, ingress pushed a 0, so we will drop it here
         if (code == 2 || code == 3 || code == 5 || code == 6) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
