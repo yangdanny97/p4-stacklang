@@ -1,5 +1,5 @@
 {
-    "stack-size": 32,
+    "stack-size": 64,
     "n-instrs": 64,
     "n-registers": 32,
     "n-steps": 250,

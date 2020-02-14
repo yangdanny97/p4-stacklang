@@ -20,6 +20,16 @@ def load_topology(config):
         json.dump(topology, f)
     return topology
 
+def setup_headers(config):
+    with open("./templates/headers-template.py", "r") as f:
+        headers = f.read()
+        stack_fields = []
+        for i in range(config["stack-size"]):
+            stack_fields.append("        IntField('idx_%s', 0)" % str(i))
+        headers = headers.replace("<< stack_fields >>", ",\n".join(stack_fields))
+        with open("headers.py", "w") as outfile:
+            outfile.write(headers)
+
 def setup_switch(config):
     with open("./templates/switch-template.p4", "r") as f:
         switch = f.read()
@@ -65,6 +75,7 @@ def __main__():
         config = json.load(f)
         topology = load_topology(config)
         setup_switch(config)
+        setup_headers(config)
         setup_controller(config, topology)
 
 __main__()

@@ -11,7 +11,7 @@ const bit<16> TYPE_IPV4 = 0x800;
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<32> MAX_STEPS = 250;
-const bit<32> STACK_SIZE = 32;
+const bit<32> STACK_SIZE = 64;
 const bit<32> MAX_INSTRS = 65; //extra for special last instruction
 const bit<32> NUM_REGISTERS = 32;
 
@@ -337,6 +337,38 @@ control MyIngress(inout headers hdr,
         stack.write(29, hdr.stack[29].value);
         stack.write(30, hdr.stack[30].value);
         stack.write(31, hdr.stack[31].value);
+        stack.write(32, hdr.stack[32].value);
+        stack.write(33, hdr.stack[33].value);
+        stack.write(34, hdr.stack[34].value);
+        stack.write(35, hdr.stack[35].value);
+        stack.write(36, hdr.stack[36].value);
+        stack.write(37, hdr.stack[37].value);
+        stack.write(38, hdr.stack[38].value);
+        stack.write(39, hdr.stack[39].value);
+        stack.write(40, hdr.stack[40].value);
+        stack.write(41, hdr.stack[41].value);
+        stack.write(42, hdr.stack[42].value);
+        stack.write(43, hdr.stack[43].value);
+        stack.write(44, hdr.stack[44].value);
+        stack.write(45, hdr.stack[45].value);
+        stack.write(46, hdr.stack[46].value);
+        stack.write(47, hdr.stack[47].value);
+        stack.write(48, hdr.stack[48].value);
+        stack.write(49, hdr.stack[49].value);
+        stack.write(50, hdr.stack[50].value);
+        stack.write(51, hdr.stack[51].value);
+        stack.write(52, hdr.stack[52].value);
+        stack.write(53, hdr.stack[53].value);
+        stack.write(54, hdr.stack[54].value);
+        stack.write(55, hdr.stack[55].value);
+        stack.write(56, hdr.stack[56].value);
+        stack.write(57, hdr.stack[57].value);
+        stack.write(58, hdr.stack[58].value);
+        stack.write(59, hdr.stack[59].value);
+        stack.write(60, hdr.stack[60].value);
+        stack.write(61, hdr.stack[61].value);
+        stack.write(62, hdr.stack[62].value);
+        stack.write(63, hdr.stack[63].value);
 
     }
 
@@ -373,6 +405,38 @@ control MyIngress(inout headers hdr,
         stack.read(hdr.stack[29].value, 29);
         stack.read(hdr.stack[30].value, 30);
         stack.read(hdr.stack[31].value, 31);
+        stack.read(hdr.stack[32].value, 32);
+        stack.read(hdr.stack[33].value, 33);
+        stack.read(hdr.stack[34].value, 34);
+        stack.read(hdr.stack[35].value, 35);
+        stack.read(hdr.stack[36].value, 36);
+        stack.read(hdr.stack[37].value, 37);
+        stack.read(hdr.stack[38].value, 38);
+        stack.read(hdr.stack[39].value, 39);
+        stack.read(hdr.stack[40].value, 40);
+        stack.read(hdr.stack[41].value, 41);
+        stack.read(hdr.stack[42].value, 42);
+        stack.read(hdr.stack[43].value, 43);
+        stack.read(hdr.stack[44].value, 44);
+        stack.read(hdr.stack[45].value, 45);
+        stack.read(hdr.stack[46].value, 46);
+        stack.read(hdr.stack[47].value, 47);
+        stack.read(hdr.stack[48].value, 48);
+        stack.read(hdr.stack[49].value, 49);
+        stack.read(hdr.stack[50].value, 50);
+        stack.read(hdr.stack[51].value, 51);
+        stack.read(hdr.stack[52].value, 52);
+        stack.read(hdr.stack[53].value, 53);
+        stack.read(hdr.stack[54].value, 54);
+        stack.read(hdr.stack[55].value, 55);
+        stack.read(hdr.stack[56].value, 56);
+        stack.read(hdr.stack[57].value, 57);
+        stack.read(hdr.stack[58].value, 58);
+        stack.read(hdr.stack[59].value, 59);
+        stack.read(hdr.stack[60].value, 60);
+        stack.read(hdr.stack[61].value, 61);
+        stack.read(hdr.stack[62].value, 62);
+        stack.read(hdr.stack[63].value, 63);
 
     }
 
@@ -800,7 +864,7 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
         }
         ipush();
-        // don't increment PC until egress
+        // push a placeholder 0 for egress-fields, don't increment PC until egress
     }
 
     action instr_setegress() {
@@ -988,7 +1052,6 @@ control MyEgress(inout headers hdr,
     register<int<32>>(STACK_SIZE) stack;
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
-    register<int<32>>(NUM_REGISTERS) swregs;
 
     action parse_instructions() {
         opcodes.write(0, hdr.instructions[0].opcode);
@@ -1156,6 +1219,38 @@ control MyEgress(inout headers hdr,
         stack.write(29, hdr.stack[29].value);
         stack.write(30, hdr.stack[30].value);
         stack.write(31, hdr.stack[31].value);
+        stack.write(32, hdr.stack[32].value);
+        stack.write(33, hdr.stack[33].value);
+        stack.write(34, hdr.stack[34].value);
+        stack.write(35, hdr.stack[35].value);
+        stack.write(36, hdr.stack[36].value);
+        stack.write(37, hdr.stack[37].value);
+        stack.write(38, hdr.stack[38].value);
+        stack.write(39, hdr.stack[39].value);
+        stack.write(40, hdr.stack[40].value);
+        stack.write(41, hdr.stack[41].value);
+        stack.write(42, hdr.stack[42].value);
+        stack.write(43, hdr.stack[43].value);
+        stack.write(44, hdr.stack[44].value);
+        stack.write(45, hdr.stack[45].value);
+        stack.write(46, hdr.stack[46].value);
+        stack.write(47, hdr.stack[47].value);
+        stack.write(48, hdr.stack[48].value);
+        stack.write(49, hdr.stack[49].value);
+        stack.write(50, hdr.stack[50].value);
+        stack.write(51, hdr.stack[51].value);
+        stack.write(52, hdr.stack[52].value);
+        stack.write(53, hdr.stack[53].value);
+        stack.write(54, hdr.stack[54].value);
+        stack.write(55, hdr.stack[55].value);
+        stack.write(56, hdr.stack[56].value);
+        stack.write(57, hdr.stack[57].value);
+        stack.write(58, hdr.stack[58].value);
+        stack.write(59, hdr.stack[59].value);
+        stack.write(60, hdr.stack[60].value);
+        stack.write(61, hdr.stack[61].value);
+        stack.write(62, hdr.stack[62].value);
+        stack.write(63, hdr.stack[63].value);
 
     }
 
@@ -1192,6 +1287,38 @@ control MyEgress(inout headers hdr,
         stack.read(hdr.stack[29].value, 29);
         stack.read(hdr.stack[30].value, 30);
         stack.read(hdr.stack[31].value, 31);
+        stack.read(hdr.stack[32].value, 32);
+        stack.read(hdr.stack[33].value, 33);
+        stack.read(hdr.stack[34].value, 34);
+        stack.read(hdr.stack[35].value, 35);
+        stack.read(hdr.stack[36].value, 36);
+        stack.read(hdr.stack[37].value, 37);
+        stack.read(hdr.stack[38].value, 38);
+        stack.read(hdr.stack[39].value, 39);
+        stack.read(hdr.stack[40].value, 40);
+        stack.read(hdr.stack[41].value, 41);
+        stack.read(hdr.stack[42].value, 42);
+        stack.read(hdr.stack[43].value, 43);
+        stack.read(hdr.stack[44].value, 44);
+        stack.read(hdr.stack[45].value, 45);
+        stack.read(hdr.stack[46].value, 46);
+        stack.read(hdr.stack[47].value, 47);
+        stack.read(hdr.stack[48].value, 48);
+        stack.read(hdr.stack[49].value, 49);
+        stack.read(hdr.stack[50].value, 50);
+        stack.read(hdr.stack[51].value, 51);
+        stack.read(hdr.stack[52].value, 52);
+        stack.read(hdr.stack[53].value, 53);
+        stack.read(hdr.stack[54].value, 54);
+        stack.read(hdr.stack[55].value, 55);
+        stack.read(hdr.stack[56].value, 56);
+        stack.read(hdr.stack[57].value, 57);
+        stack.read(hdr.stack[58].value, 58);
+        stack.read(hdr.stack[59].value, 59);
+        stack.read(hdr.stack[60].value, 60);
+        stack.read(hdr.stack[61].value, 61);
+        stack.read(hdr.stack[62].value, 62);
+        stack.read(hdr.stack[63].value, 63);
 
     }
 
@@ -1212,7 +1339,7 @@ control MyEgress(inout headers hdr,
     action instr_metadata_egress() {
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
-        // for metadata read during egress, ingress pushed a 0
+        // for metadata read during egress, ingress pushed a 0, so we will drop it here
         if (code == 2 || code == 3 || code == 5 || code == 6) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
