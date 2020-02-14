@@ -1,0 +1,9 @@
+{
+    "instructions": [
+        ["metadata", "switch_id"],
+        ["metadata", "ingress_port"],
+        ["metadata", "egress_spec"],
+        ["metadata", "enq_qdepth"]
+    ],
+    "stack": []
+}

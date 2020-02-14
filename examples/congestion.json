@@ -1,0 +1,12 @@
+{
+    "instructions": [
+        ["load", 1],
+        ["metadata", "enq_qdepth"],
+        ["lt"],
+        ["cjump", 6],
+        ["push", 1],
+        ["store", 0],
+        ["nop"]
+    ],
+    "stack": [0, 2]
+}
