@@ -31,16 +31,16 @@ def addForwardingRule(switch, dst_ip_addr, dst_port):
     bmv2_switch.WriteTableEntry(table_entry)
     print "Installed rule on %s to forward to %s via port %d" % (switch, dst_ip_addr, dst_port)
 
-def addSwIDRule(switch, id):
+def addSwIDRule(switch, swid):
     # Helper function to install forwarding rules
     table_entry = p4info_helper.buildTableEntry(
         table_name="MyIngress.switch_id",
         match_fields={
-            "hdr.ipv4.protocol": (0x8F, 8)
+            "hdr.ipv4.protocol": 0x8F
         },
-        action_name="MyIngress.ipv4_forward",
+        action_name="MyIngress.set_switch_id",
         action_params={
-            "switch_id": id,
+            "switch_id": swid,
         })
     bmv2_switch = switches[switch]
     bmv2_switch.WriteTableEntry(table_entry)
@@ -53,7 +53,7 @@ def main(p4info_file_path, bmv2_file_path, topo_file_path):
 
     try:
         # Establish a P4 Runtime connection to each switch
-        for switch in [<< switches >>]:
+        for switch in << switches >>:
             switch_id = int(switch[1:])
             bmv2_switch = p4runtime_lib.bmv2.Bmv2SwitchConnection(
                 name=switch,

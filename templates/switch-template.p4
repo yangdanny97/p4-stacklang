@@ -731,7 +731,7 @@ control MyIngress(inout headers hdr,
     }
 
     action set_switch_id(int<32> switch_id) {
-        hdr.my_metadata.switch_id = switch_id;
+        hdr.my_metadata.switch_id = (bit<32>) switch_id;
     }
 
     table switch_id {
@@ -739,7 +739,7 @@ control MyIngress(inout headers hdr,
             hdr.ipv4.protocol: exact;
         }
 
-        actions {
+        actions = {
             set_switch_id;
             NoAction;
         }
@@ -748,7 +748,7 @@ control MyIngress(inout headers hdr,
     }
 
     apply {
-        id_table.apply();
+        switch_id.apply();
         ipv4_lpm.apply();
 
         // if not recirculated then write metadata fields

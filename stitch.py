@@ -197,107 +197,109 @@ def processfile(filename, config):
     instructions = []
     stack = []
     linecount = 0
+    curr_instr = None
     with open(filename, "r") as f:
         program = json.load(f)
-        instructions = program["instructions"]
+        instrs = program["instructions"]
         stack = [STACK(v) for v in program["stack"]]
-        try:
-            for i in instructions:
-                linecount += 1
-                instr = i[0].lower()
-                if instr == "load":
-                    checkval(config, "stack-size", int(i[1]))
-                    instructions.append(LOAD(int(i[1])))
-                elif instr == "store":
-                    checkval(config, "stack-size", int(i[1]))
-                    instructions.append(STORE(int(i[1])))
-                elif instr == "varload":
-                    instructions.append(VARLOAD())
-                elif instr == "varstore":
-                    instructions,aooend(VARSTORE())
-                elif instr == "push":
-                    instructions.append(PUSH(int(i[1])))
-                elif instr == "drop":
-                    instructions.append(DROP())
-                elif instr == "add":
-                    instructions.append(ADD())
-                elif instr == "mul":
-                    instructions.append(MUL())
-                elif instr == "sub":
-                    instructions.append(SUB())
-                elif instr == "sal":
-                    instructions.append(SAL())
-                elif instr == "sar":
-                    instructions.append(SAR())
-                elif instr == "neg":
-                    instructions.append(NEG())
-                elif instr == "not":
-                    instructions.append(NOT())
-                elif instr == "reset":
-                    instructions.append(RESET())
-                elif instr == "and":
-                    instructions.append(AND())
-                elif instr == "or":
-                    instructions.append(OR())
-                elif instr == "gt":
-                    instructions.append(GT())
-                elif instr == "gte":
-                    instructions.append(GTE())
-                elif instr == "lt":
-                    instructions.append(LT())
-                elif instr == "lte":
-                    instructions.append(LTE())
-                elif instr == "eq":
-                    instructions.append(EQ())
-                elif instr == "neq":
-                    instructions.append(NEQ())
-                elif instr == "dup":
-                    instructions.append(DUP())
-                elif instr == "swap":
-                    instructions.append(SWAP())
-                elif instr == "over":
-                    instructions.append(OVER())
-                elif instr == "rot":
-                    instructions.append(ROT())
-                elif instr == "jump":
-                    checkval(config, "n-instrs", int(i[1]))
-                    instructions.append(JUMP(int(i[1])))
-                elif instr == "cjump":
-                    checkval(config, "n-instrs", int(i[1]))
-                    instructions.append(CJUMP(int(i[1])))
-                elif instr == "done":
-                    instructions.append(DONE())
-                elif instr == "setresult":
-                    instructions.append(SETRESULT())
-                elif instr == "nop":
-                    instructions.append(NOP())
-                elif instr == "error":
-                    instructions.append(ERROR())
-                elif instr == "loadreg":
-                    checkval(config, "n-registers", int(i[1]))
-                    instructions.append(LOADREG(int(i[1])))
-                elif instr == "storereg":
-                    checkval(config, "n-registers", int(i[1]))
-                    instructions.append(STOREREG(int(i[1])))
-                elif instr == "varloadreg":
-                    instructions.append(VARLOADREG())
-                elif instr == "varstorereg":
-                    instructions.append(VARSTOREREG())
-                elif instr == "metadata":
-                    if i[1] not in config["switch-metadata"] and i[1] not in list(config["switch-metadata"].values()):
-                        raise Exception("unknown metadata field!")
-                    elif isinstance(i[1], int):
-                        instructions.append(METADATA(i[1]))
-                    else:
-                        field_idx = config["switch-metadata"][i[1]]
-                        instructions.append(METADATA(field_idx))
-                elif instr == "setegress":
-                    instructions.append(SETEGRESS())
+        for i in instrs:
+            linecount += 1
+            curr_instr = i
+            instr = i[0].lower()
+            if instr == "load":
+                checkval(config, "stack-size", int(i[1]))
+                instructions.append(LOAD(int(i[1])))
+            elif instr == "store":
+                checkval(config, "stack-size", int(i[1]))
+                instructions.append(STORE(int(i[1])))
+            elif instr == "varload":
+                instructions.append(VARLOAD())
+            elif instr == "varstore":
+                instructions,aooend(VARSTORE())
+            elif instr == "push":
+                instructions.append(PUSH(int(i[1])))
+            elif instr == "drop":
+                instructions.append(DROP())
+            elif instr == "add":
+                instructions.append(ADD())
+            elif instr == "mul":
+                instructions.append(MUL())
+            elif instr == "sub":
+                instructions.append(SUB())
+            elif instr == "sal":
+                instructions.append(SAL())
+            elif instr == "sar":
+                instructions.append(SAR())
+            elif instr == "neg":
+                instructions.append(NEG())
+            elif instr == "not":
+                instructions.append(NOT())
+            elif instr == "reset":
+                instructions.append(RESET())
+            elif instr == "and":
+                instructions.append(AND())
+            elif instr == "or":
+                instructions.append(OR())
+            elif instr == "gt":
+                instructions.append(GT())
+            elif instr == "gte":
+                instructions.append(GTE())
+            elif instr == "lt":
+                instructions.append(LT())
+            elif instr == "lte":
+                instructions.append(LTE())
+            elif instr == "eq":
+                instructions.append(EQ())
+            elif instr == "neq":
+                instructions.append(NEQ())
+            elif instr == "dup":
+                instructions.append(DUP())
+            elif instr == "swap":
+                instructions.append(SWAP())
+            elif instr == "over":
+                instructions.append(OVER())
+            elif instr == "rot":
+                instructions.append(ROT())
+            elif instr == "jump":
+                checkval(config, "n-instrs", int(i[1]))
+                instructions.append(JUMP(int(i[1])))
+            elif instr == "cjump":
+                checkval(config, "n-instrs", int(i[1]))
+                instructions.append(CJUMP(int(i[1])))
+            elif instr == "done":
+                instructions.append(DONE())
+            elif instr == "setresult":
+                instructions.append(SETRESULT())
+            elif instr == "nop":
+                instructions.append(NOP())
+            elif instr == "error":
+                instructions.append(ERROR())
+            elif instr == "loadreg":
+                checkval(config, "n-registers", int(i[1]))
+                instructions.append(LOADREG(int(i[1])))
+            elif instr == "storereg":
+                checkval(config, "n-registers", int(i[1]))
+                instructions.append(STOREREG(int(i[1])))
+            elif instr == "varloadreg":
+                instructions.append(VARLOADREG())
+            elif instr == "varstorereg":
+                instructions.append(VARSTOREREG())
+            elif instr == "metadata":
+                if i[1] not in config["switch-metadata"] and i[1] not in list(config["switch-metadata"].values()):
+                    raise Exception("unknown metadata field!")
+                elif isinstance(i[1], int):
+                    instructions.append(METADATA(i[1]))
                 else:
-                    raise Exception("no such instruction")
-        except:
-            print "error processing instruction %s" % str(linecount)
-            print sys.exc_info()[0]
+                    field_idx = config["switch-metadata"][i[1]]
+                    instructions.append(METADATA(field_idx))
+            elif instr == "setegress":
+                instructions.append(SETEGRESS())
+            else:
+                raise Exception("no such instruction")
+        # except:
+        #     print "error processing instruction %s" % str(linecount)
+        #     print curr_instr
+        #     print sys.exc_info()[0]
     if len(instructions) > config["n-instrs"]:
         raise Exception("maximum instruction count exceeded!")
     if len(stack) > config["stack-size"]:
