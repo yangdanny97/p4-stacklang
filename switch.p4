@@ -949,7 +949,7 @@ control MyIngress(inout headers hdr,
             hdr.pdata.err_flg = 1w1;
         }
         // regular instruction: run instruction and recirculate
-        // (unless egress port is over-ridden by circulation)
+        // (unless egress is overwritten by instruction)
         else {
             // atomic to prevent races when stack/instrs are temporarily moved to registers
             @atomic {
