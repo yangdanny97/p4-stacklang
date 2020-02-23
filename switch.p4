@@ -939,19 +939,15 @@ control MyIngress(inout headers hdr,
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
+        standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
 
         // done flag set -> continue to next hop
-        if (hdr.pdata.done_flg == 1w1) { 
-            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
-        } 
+        if (hdr.pdata.done_flg == 1w1) { } 
         // error flag set -> continue to next hop
-        else if (hdr.pdata.err_flg == 1w1) { 
-            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
-        } 
+        else if (hdr.pdata.err_flg == 1w1) { } 
         // max steps reached -> set error flag
         else if (hdr.pdata.steps > MAX_STEPS) {
             hdr.pdata.err_flg = 1w1;
-            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
         }
         // regular instruction: run instruction and recirculate
         // (unless egress is overwritten by instruction)
