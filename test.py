@@ -12,9 +12,9 @@ from stitch import *
 
 def main():
     addr = socket.gethostbyname(sys.argv[1])
-    instrs = []
-    stack = []
-    send_pkt(addr, instrs, stk)
+    instrs = [METADATA(0)]
+    stack = [STACK(10)]
+    send_pkt(addr, instrs, stack)
 
 if __name__ == '__main__':
     main()

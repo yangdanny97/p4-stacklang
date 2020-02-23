@@ -747,6 +747,7 @@ control MyIngress(inout headers hdr,
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
+        standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
 
         // done flag set -> continue to next hop
         if (hdr.pdata.done_flg == 1w1) { } 

@@ -941,12 +941,17 @@ control MyIngress(inout headers hdr,
         }
 
         // done flag set -> continue to next hop
-        if (hdr.pdata.done_flg == 1w1) { } 
+        if (hdr.pdata.done_flg == 1w1) { 
+            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
+        } 
         // error flag set -> continue to next hop
-        else if (hdr.pdata.err_flg == 1w1) { } 
+        else if (hdr.pdata.err_flg == 1w1) { 
+            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
+        } 
         // max steps reached -> set error flag
         else if (hdr.pdata.steps > MAX_STEPS) {
             hdr.pdata.err_flg = 1w1;
+            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
         }
         // regular instruction: run instruction and recirculate
         // (unless egress is overwritten by instruction)
