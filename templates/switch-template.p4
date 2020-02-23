@@ -589,23 +589,13 @@ control MyIngress(inout headers hdr,
         if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
         } else 
-        if (code == 2) { // egress
-            hdr.pdata.curr_instr_arg = 0;
-        } else
-        if (code == 3) { // egress
-            hdr.pdata.curr_instr_arg = 0;
-        } else
         if (code == 4) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.egress_spec;
         } else
-        if (code == 5) { // egress
-            hdr.pdata.curr_instr_arg = 0;
-        } else
-        if (code == 6) { // egress
-            hdr.pdata.curr_instr_arg = 0;
-        } else
         if (code == 7) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
+        } else { // egress
+            hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         // push a placeholder 0 for egress-fields, don't increment PC until egress
@@ -831,28 +821,18 @@ control MyEgress(inout headers hdr,
         if (code == 2 || code == 3 || code == 5 || code == 6) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
-        if (code == 0) { // ingress 
-            hdr.pdata.curr_instr_arg = 0;
-        } else 
-        if (code == 1) { // ingress 
-            hdr.pdata.curr_instr_arg = 0;
-        } else 
         if (code == 2) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
         } else 
         if (code == 3) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
         } else 
-        if (code == 4) { // ingress 
-            hdr.pdata.curr_instr_arg = 0;
-        } else 
         if (code == 5) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_timestamp;
         } else 
         if (code == 6) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
-        } else
-        if (code == 7) { // ingress 
+        } else { // ingress 
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
