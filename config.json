@@ -1,6 +1,6 @@
 {
-    "stack-size": 64,
-    "n-instrs": 32,
+    "stack-size": 20,
+    "n-instrs": 20,
     "n-registers": 32,
     "n-steps": 250,
     "switch-metadata": {

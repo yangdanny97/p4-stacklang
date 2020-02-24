@@ -3,6 +3,7 @@
 #include <v1model.p4>
 
 const bit<16> TYPE_IPV4 = 0x800;
+typedef bit<48> time_t;
 
 /*************************************************************************
 ***********************  INSTRUCTIONS  ***********************************
@@ -31,7 +32,7 @@ header my_metadata_t {
     bit<19> enq_qdepth;
     bit<19> deq_qdepth;
     bit<9> egress_spec;
-    time_t enq_timestamp;
+    bit<32> enq_timestamp;
     bit<32> deq_timedelta;
     bit<32> switch_id;
     time_t ingress_timestamp;
@@ -57,7 +58,6 @@ header pdata_t {
 typedef bit<9>  egressSpec_t;
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
-typedef bit<48> time_t;
 
 header ethernet_t {
     macAddr_t dstAddr;
@@ -587,7 +587,7 @@ control MyIngress(inout headers hdr,
     }
 
     action instr_metadata_ingress() {
-        bit<32> byte_cnt;
+        int<32> byte_cnt;
         time_t time;
         rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
         last_time.read(time, (bit<32>)standard_metadata.ingress_port);
@@ -607,29 +607,29 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
         } else
         if (code == 8) {
-            hdr.pdata.curr_instr_arg = (int<32>) byte_cnt;
+            hdr.pdata.curr_instr_arg = byte_cnt;
         } else { // egress
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         // for code 8, also push time since last probe onto stack
-        int<32> timedelta;
+        bit<32> timedelta;
         if (code == 8) {
-            timedelta = (int<32>) (bit<32>) ((hdr.my_metadata.inress_global_timestamp - time) << 16);
+            timedelta = (bit<32>) ((hdr.my_metadata.ingress_timestamp - time);
         } else {
             timedelta = 32w0;
         }
-        stack.write(hdr.pdata.sp, hdr.pdata.timedelta);
+        stack.write(hdr.pdata.sp, (int<32>) timedelta);
         if (code == 8) {
             hdr.pdata.sp = hdr.pdata.sp + 32w1;
         }
         // update update last time and clear byte count
         if (code == 8) {
-            byte_cnt = 32w0;
-            time = hdr.my_metadata.ingress_global_timestamp;
+            byte_cnt = (int<32>) 32w0;
+            time = hdr.my_metadata.ingress_timestamp;
         }
         rx_bytes.write((bit<32>)hdr.my_metadata.ingress_port, byte_cnt);
-        last_time.write((bit<32>)hdr.my_metadata.egress_port, time);
+        last_time.write((bit<32>)hdr.my_metadata.ingress_port, time);
     }
 
     action instr_setegress() {
@@ -769,10 +769,10 @@ control MyIngress(inout headers hdr,
     }
 
     action add_rx_bytes() {
-        bit<32> byte_cnt;
-        rx_bytes.read(byte_cnt, (bit<32>)hdr.my_metadata.ingress_port);
-        byte_cnt = byte_cnt + standard_metadata.packet_length;
-        rx_bytes.write((bit<32>)hdr.my_metadata.ingress_port, byte_cnt);
+        int<32> byte_cnt;
+        rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
+        byte_cnt = byte_cnt + (int<32>) standard_metadata.packet_length;
+        rx_bytes.write((bit<32>)standard_metadata.ingress_port, byte_cnt);
     }
 
 
@@ -780,7 +780,7 @@ control MyIngress(inout headers hdr,
         switch_id.apply();
         ipv4_lpm.apply();
 
-        if (hdr.pdata.isValid() && hdr.my_metadata.isValid() && hdr.instructions.isValid() && hdr.stack.isValid()) {
+        if (hdr.pdata.isValid() && hdr.my_metadata.isValid()) {
             // if not recirculated then write metadata fields
             if (standard_metadata.ingress_port != 9w<< recirculate_in >>) {
                 hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
@@ -819,8 +819,9 @@ control MyIngress(inout headers hdr,
                     deparse_stack();
                 }
             }
+        } else {
+            add_rx_bytes();
         }
-        add_rx_bytes();
     }
 }
 
@@ -868,7 +869,7 @@ control MyEgress(inout headers hdr,
     action instr_metadata_egress() {
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
-        bit<32> byte_cnt;
+        int<32> byte_cnt;
         time_t time;
         tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
         last_time.read(time, (bit<32>)standard_metadata.egress_spec);
@@ -883,16 +884,16 @@ control MyEgress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
         } else 
         if (code == 5) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.enq_timestamp << 16);
+            hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.enq_timestamp;
         } else 
         if (code == 6) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
         } else if (code == 9) {
-            hdr.pdata.curr_instr_arg = (int<32>) byte_cnt;
+            hdr.pdata.curr_instr_arg = byte_cnt;
         } else if (code == 10) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.ingress_global_timestamp << 16);
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.ingress_timestamp);
         } else if (code == 11) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.egress_global_timestamp << 16);
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.egress_timestamp);
         } else { // ingress 
             hdr.pdata.curr_instr_arg = 0;
         }
@@ -903,30 +904,30 @@ control MyEgress(inout headers hdr,
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
         // for code 9, also push time since last probe onto stack
-        int<32> timedelta;
+        bit<32> timedelta;
         if (code == 9) {
-            timedelta = (int<32>) (bit<32>) ((hdr.my_metadata.egress_global_timestamp - time) << 16);
+            timedelta = (bit<32>) ((hdr.my_metadata.egress_timestamp - time));
         } else {
             timedelta = 32w0;
         }
-        stack.write(hdr.pdata.sp, hdr.pdata.timedelta);
+        stack.write(hdr.pdata.sp, (int<32>) timedelta);
         if (code == 9) {
             hdr.pdata.sp = hdr.pdata.sp + 32w1;
         }
         // update update last time and clear byte count
         if (code == 9) {
-            byte_cnt = 32w0;
-            time = hdr.my_metadata.egress_global_timestamp;
+            byte_cnt = (int<32>) 32w0;
+            time = hdr.my_metadata.egress_timestamp;
         }
         tx_bytes.write((bit<32>)hdr.my_metadata.egress_spec, byte_cnt);
         last_time.write((bit<32>)hdr.my_metadata.egress_spec, time);
     }
 
     action add_tx_bytes() {
-        bit<32> byte_cnt;
-        tx_bytes.read(byte_cnt, (bit<32>)hdr.my_metadata.egress_spec);
-        byte_cnt = byte_cnt + hdr.my_metadata.packet_length;
-        tx_bytes.write((bit<32>)hdr.my_metadata.egress_spec, byte_cnt);
+        int<32> byte_cnt;
+        tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
+        byte_cnt = byte_cnt + (int<32>) standard_metadata.packet_length;
+        tx_bytes.write((bit<32>)standard_metadata.egress_spec, byte_cnt);
     }
 
     table instruction_table_egress {
@@ -944,7 +945,7 @@ control MyEgress(inout headers hdr,
     }
             
     apply {
-        if (hdr.pdata.isValid() && hdr.my_metadata.isValid() && hdr.instructions.isValid() && hdr.stack.isValid()) {
+        if (hdr.pdata.isValid() && hdr.my_metadata.isValid()) {
             @atomic {
                 hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
                 hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
@@ -958,8 +959,9 @@ control MyEgress(inout headers hdr,
                 instruction_table_egress.apply();
                 deparse_stack();
             } 
-        } 
-        add_tx_bytes();
+        } else {
+            add_tx_bytes();
+        }
     }
 }
 

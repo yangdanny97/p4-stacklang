@@ -12,7 +12,7 @@ from stitch import *
 
 def main():
     addr = socket.gethostbyname(sys.argv[1])
-    instrs = [METADATA(0)]
+    instrs = [METADATA(10)]
     stack = [STACK(10)]
     send_pkt(addr, instrs, stack)
 
