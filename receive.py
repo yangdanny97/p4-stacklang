@@ -12,7 +12,7 @@ from headers import *
 from stitch import *
 
 def handle_pkt(pkt):
-    pkt[3].show(True)      
+    pkt[2].show(True)      
 
 def main():
     ifaces = filter(lambda i: 'eth' in i, os.listdir('/sys/class/net/'))

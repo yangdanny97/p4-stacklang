@@ -14,6 +14,7 @@ const bit<32> MAX_STEPS = 250;
 const bit<32> STACK_SIZE = 64;
 const bit<32> MAX_INSTRS = 33; //extra for special last instruction
 const bit<32> NUM_REGISTERS = 32;
+const bit<32> MAX_PORTS = 10;
 
 header instr_t {
     bit<8> opcode;
@@ -54,6 +55,7 @@ header pdata_t {
 typedef bit<9>  egressSpec_t;
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
+typedef bit<48> time_t;
 
 header ethernet_t {
     macAddr_t dstAddr;
@@ -170,6 +172,8 @@ control MyIngress(inout headers hdr,
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
     register<int<32>>(NUM_REGISTERS) swregs;
+    register<int<32>>(MAX_PORTS) rx_bytes;
+    register<time_t>(MAX_PORTS) last_time;
 
     action parse_instructions() {
         opcodes.write(0, hdr.instructions[0].opcode);
@@ -773,6 +777,10 @@ control MyIngress(inout headers hdr,
     }
 
     action instr_metadata_ingress() {
+        bit<32> byte_cnt;
+        time_t time;
+        rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
+        last_time.read(time, (bit<32>)standard_metadata.ingress_port);
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
@@ -786,11 +794,20 @@ control MyIngress(inout headers hdr,
         } else
         if (code == 7) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.switch_id;
+        } else
+        if (code == 8) {
+            hdr.pdata.curr_instr_arg = (int<32>) byte_cnt;
         } else { // egress
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         // push a placeholder 0 for egress-fields, don't increment PC until egress
+        if (code == 8) {
+            byte_cnt = 32w0;
+            time = standard_metadata.ingress_global_timestamp;
+        }
+        rx_bytes.write((bit<32>)standard_metadata.ingress_port, byte_cnt);
+        last_time.write((bit<32>)standard_metadata.ingress_port, time);
     }
 
     action instr_setegress() {
@@ -929,47 +946,58 @@ control MyIngress(inout headers hdr,
         default_action = NoAction();
     }
 
+    action add_rx_bytes() {
+        bit<32> byte_cnt;
+        rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
+        byte_cnt = byte_cnt + standard_metadata.packet_length;
+        rx_bytes.write((bit<32>)standard_metadata.ingress_port, byte_cnt);
+    }
+
+
     apply {
         switch_id.apply();
         ipv4_lpm.apply();
 
-        // if not recirculated then write metadata fields
-        if (standard_metadata.ingress_port != 9w7) {
-            hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
-            hdr.my_metadata.packet_length = standard_metadata.packet_length;
-            hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
-        }
+        if (hdr.pdata.isValid() && hdr.my_metadata.isValid() && hdr.instructions.isValid() && hdr.stack.isValid()) {
+            // if not recirculated then write metadata fields
+            if (standard_metadata.ingress_port != 9w7) {
+                hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
+                hdr.my_metadata.packet_length = standard_metadata.packet_length;
+                hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
+            }
 
-        standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
+            standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
 
-        // done flag set -> continue to next hop
-        if (hdr.pdata.done_flg == 1w1) {
-            hdr.pdata.done_flg = 1w0;
-            hdr.pdata.steps = 32w0;
-            hdr.pdata.pc = 32w0;
-        } 
-        // error flag set -> continue to next hop
-        else if (hdr.pdata.err_flg == 1w1) { } 
-        // max steps reached -> set error flag
-        else if (hdr.pdata.steps > MAX_STEPS) {
-            hdr.pdata.err_flg = 1w1;
-        }
-        // regular instruction: run instruction and recirculate
-        // (unless egress is overwritten by instruction)
-        else {
-            // atomic to prevent races when stack/instrs are temporarily moved to registers
-            @atomic {
-                standard_metadata.egress_spec = 9w6;
-                // don't decrement ttl for self-forwarding
-                hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
-                parse_instructions();
-                parse_stack();
-                read_current_instr();
-                instruction_table_ingress.apply();
-                increment_steps();
-                deparse_stack();
+            // done flag set -> continue to next hop
+            if (hdr.pdata.done_flg == 1w1) {
+                hdr.pdata.done_flg = 1w0;
+                hdr.pdata.steps = 32w0;
+                hdr.pdata.pc = 32w0;
+            } 
+            // error flag set -> continue to next hop
+            else if (hdr.pdata.err_flg == 1w1) { } 
+            // max steps reached -> set error flag
+            else if (hdr.pdata.steps > MAX_STEPS) {
+                hdr.pdata.err_flg = 1w1;
+            }
+            // regular instruction: run instruction and recirculate
+            // (unless egress is overwritten by instruction)
+            else {
+                // atomic to prevent races when stack/instrs are temporarily moved to registers
+                @atomic {
+                    standard_metadata.egress_spec = 9w6;
+                    // don't decrement ttl for self-forwarding
+                    hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
+                    parse_instructions();
+                    parse_stack();
+                    read_current_instr();
+                    instruction_table_ingress.apply();
+                    increment_steps();
+                    deparse_stack();
+                }
             }
         }
+        add_rx_bytes();
     }
 }
 
@@ -984,6 +1012,8 @@ control MyEgress(inout headers hdr,
     register<int<32>>(STACK_SIZE) stack;
     register<bit<8>>(MAX_INSTRS) opcodes;
     register<int<32>>(MAX_INSTRS) args;
+    register<int<32>>(MAX_PORTS) tx_bytes;
+    register<time_t>(MAX_PORTS) last_time;
 
     action parse_instructions() {
         opcodes.write(0, hdr.instructions[0].opcode);
@@ -1207,8 +1237,12 @@ control MyEgress(inout headers hdr,
     action instr_metadata_egress() {
         // TARGET-SPECIFIC
         int<32> code = hdr.pdata.curr_instr_arg;
+        bit<32> byte_cnt;
+        time_t time;
+        tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
+        last_time.read(time, (bit<32>)standard_metadata.egress_spec);
         // for metadata read during egress, ingress pushed a 0, so we will drop it here
-        if (code == 2 || code == 3 || code == 5 || code == 6) {
+        if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
         if (code == 2) {
@@ -1222,15 +1256,30 @@ control MyEgress(inout headers hdr,
         } else 
         if (code == 6) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
+        } else if (code == 9) {
+            hdr.pdata.curr_instr_arg = (int<32>) byte_cnt;
         } else { // ingress 
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
         // for metadata already pushed during ingress, egress pushed a 0
-        if (code == 0 || code == 1 || code == 4 || code == 7) {
+        if (code == 0 || code == 1 || code == 4 || code == 7 || code == 8) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
+        if (code == 9) {
+            byte_cnt = 32w0;
+            time = standard_metadata.egress_global_timestamp;
+        }
         increment_pc();
+        tx_bytes.write((bit<32>)standard_metadata.egress_spec, byte_cnt);
+        last_time.write((bit<32>)standard_metadata.egress_spec, time);
+    }
+
+    action add_tx_bytes() {
+        bit<32> byte_cnt;
+        tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
+        byte_cnt = byte_cnt + standard_metadata.packet_length;
+        tx_bytes.write((bit<32>)standard_metadata.egress_spec, byte_cnt);
     }
 
     table instruction_table_egress {
@@ -1248,18 +1297,21 @@ control MyEgress(inout headers hdr,
     }
             
     apply {
-        @atomic {
-            hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
-            hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
-            hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-            hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+        if (hdr.pdata.isValid() && hdr.my_metadata.isValid() && hdr.instructions.isValid() && hdr.stack.isValid()) {
+            @atomic {
+                hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+                hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
+                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
 
-            parse_instructions();
-            parse_stack();
-            read_current_instr();
-            instruction_table_egress.apply();
-            deparse_stack();
-        }  
+                parse_instructions();
+                parse_stack();
+                read_current_instr();
+                instruction_table_egress.apply();
+                deparse_stack();
+            } 
+        } 
+        add_tx_bytes();
     }
 }
 

@@ -38,6 +38,7 @@ def setup_switch(config):
         switch = switch.replace("<< max_instrs >>", str(config["n-instrs"]+1))
         switch = switch.replace("<< n_registers >>", str(config["n-registers"]))
         switch = switch.replace("<< max_steps >>", str(config["n-steps"]))
+        switch = switch.replace("<< max_ports >>", str(config["max-ports"]))
         parse_opcodes = []
         parse_args = []
         for i in range(config["n-instrs"]):

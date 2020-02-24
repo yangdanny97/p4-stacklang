@@ -13,6 +13,7 @@
         "deq_timedelta": 6,
         "switch_id": 7
     },
+    "max-ports": 10,
     "recirculate-out": 6,
     "recirculate-in": 7,
     "topology": {
