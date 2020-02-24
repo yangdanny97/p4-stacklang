@@ -939,10 +939,15 @@ control MyIngress(inout headers hdr,
             hdr.my_metadata.packet_length = standard_metadata.packet_length;
             hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
         }
+
         standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
 
         // done flag set -> continue to next hop
-        if (hdr.pdata.done_flg == 1w1) { } 
+        if (hdr.pdata.done_flg == 1w1) {
+            hdr.pdata.done_flg = 1w0;
+            hdr.pdata.steps = 32w0;
+            hdr.pdata.pc = 32w0;
+        } 
         // error flag set -> continue to next hop
         else if (hdr.pdata.err_flg == 1w1) { } 
         // max steps reached -> set error flag
@@ -954,6 +959,7 @@ control MyIngress(inout headers hdr,
         else {
             // atomic to prevent races when stack/instrs are temporarily moved to registers
             @atomic {
+                standard_metadata.egress_spec = 9w6;
                 // don't decrement ttl for self-forwarding
                 hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
                 parse_instructions();
@@ -962,7 +968,6 @@ control MyIngress(inout headers hdr,
                 instruction_table_ingress.apply();
                 increment_steps();
                 deparse_stack();
-                standard_metadata.egress_spec = 9w6;
             }
         }
     }
@@ -1249,11 +1254,7 @@ control MyEgress(inout headers hdr,
             hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
             hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
 
-            if (hdr.pdata.done_flg == 1w1) {
-                hdr.pdata.done_flg = 1w0;
-                hdr.pdata.steps = 32w0;
-                hdr.pdata.pc = 32w0;
-            }
+            parse_instructions();
             parse_stack();
             read_current_instr();
             instruction_table_egress.apply();
