@@ -156,6 +156,10 @@ v1model:
 5 enq_timestamp;
 6 deq_timedelta;
 7 switch_id;
+8 rx_util;
+9 tx_util;
+10 ingress_timestamp;
+11 egress_timestamp;
 '''
 def METADATA(r):
     return Instruction(opcode = i_metadata, arg = r)

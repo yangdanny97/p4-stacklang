@@ -11,7 +11,11 @@
         "egresss_spec": 4,
         "enq_timestamp": 5,
         "deq_timedelta": 6,
-        "switch_id": 7
+        "switch_id": 7,
+        "rx_util": 8,
+        "tx_util": 9,
+        "ingress_timestamp": 10,
+        "egress_timestamp": 11
     },
     "max-ports": 10,
     "recirculate-out": 6,

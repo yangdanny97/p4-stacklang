@@ -112,9 +112,11 @@ class Metadata(Packet):
         BitField('enq_qdepth', 0, 19),
         BitField('deq_qdepth', 0, 19),
         BitField('egress_spec', 0, 9),
-        BitField('enq_timestamp', 0, 32),
+        BitField('enq_timestamp', 0, 48),
         BitField('enq_timedelta', 0, 32),
-        BitField('switch_id', 0, 32)
+        BitField('switch_id', 0, 32),
+        BitField('ingress_timestamp', 0, 48),
+        BitField('egress_timestamp', 0, 48)
     ]  
 
     def answers(self, other):

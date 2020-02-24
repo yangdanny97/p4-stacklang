@@ -52,6 +52,10 @@ metadata [n] - hardware specific; push the value of some standard metadata field
         5 enq_timestamp;
         6 deq_timedelta;
         7 switch_id;
+        8 rx_util;
+        9 tx_util;
+        10 ingress_timestamp;
+        11 egress_timestamp;
 
 setegress - pop top of stack and set egress spec to the port corresponding to that value; this ends the current execution of the program, and will emit the packet out of the specified port and reset the PC/steps fields in the program data header.
 

@@ -31,9 +31,11 @@ header my_metadata_t {
     bit<19> enq_qdepth;
     bit<19> deq_qdepth;
     bit<9> egress_spec;
-    bit<32> enq_timestamp;
+    time_t enq_timestamp;
     bit<32> deq_timedelta;
     bit<32> switch_id;
+    time_t ingress_timestamp;
+    time_t egress_timestamp;
 }
 
 header pdata_t {
@@ -590,6 +592,7 @@ control MyIngress(inout headers hdr,
         rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
         last_time.read(time, (bit<32>)standard_metadata.ingress_port);
         // TARGET-SPECIFIC
+        // push a placeholder 0 for egress-fields, don't increment PC until egress
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
@@ -609,7 +612,7 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
-        // push a placeholder 0 for egress-fields, don't increment PC until egress
+        // update update last time and clear byte count
         if (code == 8) {
             byte_cnt = 32w0;
             time = standard_metadata.ingress_global_timestamp;
@@ -772,6 +775,7 @@ control MyIngress(inout headers hdr,
                 hdr.my_metadata.ingress_port = standard_metadata.ingress_port;
                 hdr.my_metadata.packet_length = standard_metadata.packet_length;
                 hdr.my_metadata.egress_spec = standard_metadata.egress_spec;
+                hdr.my_metadata.ingress_timestamp = standard_metadata.ingress_global_timestamp;
             }
 
             standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
@@ -858,7 +862,7 @@ control MyEgress(inout headers hdr,
         tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
         last_time.read(time, (bit<32>)standard_metadata.egress_spec);
         // for metadata read during egress, ingress pushed a 0, so we will drop it here
-        if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9) {
+        if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9 || code == 10 || code == 11) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
         if (code == 2) {
@@ -868,25 +872,40 @@ control MyEgress(inout headers hdr,
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
         } else 
         if (code == 5) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_timestamp;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.enq_timestamp << 16);
         } else 
         if (code == 6) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
         } else if (code == 9) {
             hdr.pdata.curr_instr_arg = (int<32>) byte_cnt;
+        } else if (code == 10) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.ingress_global_timestamp << 16);
+        } else if (code == 11) {
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) (hdr.my_metadata.egress_global_timestamp << 16);
         } else { // ingress 
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
+        increment_pc();
         // for metadata already pushed during ingress, egress pushed a 0
         if (code == 0 || code == 1 || code == 4 || code == 7 || code == 8) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
+        // for code 8 and 9, also push time since last probe onto stack
+        int<32> timedelta;
+        if (code == 8) {
+            timedelta = (int<32>) (bit<32>) ((standard_metadata.ingress_global_timestamp - time) << 16);
+        } else 
+        if (code == 9) {
+            timedelta = (int<32>) (bit<32>) ((standard_metadata.egress_global_timestamp - time) << 16);
+        } else {
+            timedelta = 0;
+        }
+        // update update last time and clear byte count
         if (code == 9) {
             byte_cnt = 32w0;
             time = standard_metadata.egress_global_timestamp;
         }
-        increment_pc();
         tx_bytes.write((bit<32>)standard_metadata.egress_spec, byte_cnt);
         last_time.write((bit<32>)standard_metadata.egress_spec, time);
     }
@@ -919,6 +938,7 @@ control MyEgress(inout headers hdr,
                 hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
                 hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
                 hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+                hdr.my_metadata.egress_timestamp = standard_metadata.egress_global_timestamp;
 
                 parse_instructions();
                 parse_stack();
