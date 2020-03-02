@@ -597,7 +597,7 @@ control MyIngress(inout headers hdr,
         // push a placeholder 0 for egress-fields, don't increment PC until egress
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
-            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
+            hdr.pdata.curr_instr_arg = 100;//(int<32>) (bit<32>) hdr.my_metadata.ingress_port;
         } else
         if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
@@ -614,6 +614,9 @@ control MyIngress(inout headers hdr,
             hdr.pdata.curr_instr_arg = 0;
         }
         ipush();
+        if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9 || code == 10 || code == 11) {
+            hdr.pdata.sp = hdr.pdata.sp - 32w1;
+        }
         // for code 8, also push time since last probe onto stack
         bit<32> timedelta;
         if (code == 8) {
@@ -869,20 +872,13 @@ control MyEgress(inout headers hdr,
         time_t time;
         tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
         last_time.read(time, (bit<32>)standard_metadata.egress_spec);
-        // for metadata read during egress, ingress pushed a 0, so we will drop it here
-        if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9 || code == 10 || code == 11) {
-            hdr.pdata.sp = hdr.pdata.sp - 32w1;
-        }
         if (code == 2) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
-        } else 
-        if (code == 3) {
+        } else if (code == 3) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_qdepth;
-        } else 
-        if (code == 5) {
+        } else if (code == 5) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.enq_timestamp;
-        } else 
-        if (code == 6) {
+        } else if (code == 6) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.deq_timedelta;
         } else if (code == 9) {
             hdr.pdata.curr_instr_arg = byte_cnt;

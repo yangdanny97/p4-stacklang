@@ -16,7 +16,6 @@ def main():
     #instrs = [LOADREG(0), DONE()]
    #  instrs = [METADATA(0), METADATA(0), METADATA(0), METADATA(0), DONE()]
     instrs = [
-        RESET(),
         PUSH(5), # current number
         STOREREG(0),
         PUSH(1), # result
@@ -37,9 +36,8 @@ def main():
         JUMP(5), # jump to first NOP
         NOP(),
         LOADREG(1),
-        SETRESULT(),
         METADATA(0),
-        DONE()
+        PUSH(2),
     ]
     stack = []
     send_pkt(addr, instrs, stack)
