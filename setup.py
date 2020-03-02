@@ -27,6 +27,9 @@ def setup_headers(config):
         for i in range(config["stack-size"]):
             stack_fields.append("        IntField('idx_%s', 0)" % str(i))
         headers = headers.replace("<< stack_fields >>", ",\n".join(stack_fields))
+        headers = headers.replace("<< max_steps >>", str(config["n-steps"]))
+        headers = headers.replace("<< stack_size >>", str(config["stack-size"]))
+        headers = headers.replace("<< max_instrs >>", str(config["n-instrs"]))
         with open("headers.py", "w") as outfile:
             outfile.write(headers)
 
@@ -37,7 +40,6 @@ def setup_switch(config):
         switch = switch.replace("<< stack_size >>", str(config["stack-size"]))
         switch = switch.replace("<< max_instrs >>", str(config["n-instrs"]+1))
         switch = switch.replace("<< n_registers >>", str(config["n-registers"]))
-        switch = switch.replace("<< max_steps >>", str(config["n-steps"]))
         switch = switch.replace("<< max_ports >>", str(config["max-ports"]))
         parse_opcodes = []
         parse_args = []

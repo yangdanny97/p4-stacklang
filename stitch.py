@@ -300,10 +300,6 @@ def processfile(filename, config):
                 instructions.append(SETEGRESS())
             else:
                 raise Exception("no such instruction")
-        # except:
-        #     print "error processing instruction %s" % str(linecount)
-        #     print curr_instr
-        #     print sys.exc_info()[0]
     if len(instructions) > config["n-instrs"]:
         raise Exception("maximum instruction count exceeded!")
     if len(stack) > config["stack-size"]:

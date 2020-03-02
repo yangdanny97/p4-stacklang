@@ -1,8 +1,8 @@
 {
-    "stack-size": 20,
-    "n-instrs": 20,
+    "stack-size": 32,
+    "n-instrs": 25,
     "n-registers": 32,
-    "n-steps": 250,
+    "n-steps": 500,
     "switch-metadata": {
         "ingress_port": 0,
         "packet_length": 1,

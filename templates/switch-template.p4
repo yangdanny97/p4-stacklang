@@ -514,6 +514,7 @@ control MyIngress(inout headers hdr,
 
     action instr_done() {
         hdr.pdata.done_flg = 1w1;
+        standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
     }
 
     action instr_setresult() {
@@ -524,6 +525,7 @@ control MyIngress(inout headers hdr,
 
     action instr_error() {
         hdr.pdata.err_flg = 1w1;
+        standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
     }
 
     action instr_nop() {
@@ -615,7 +617,7 @@ control MyIngress(inout headers hdr,
         // for code 8, also push time since last probe onto stack
         bit<32> timedelta;
         if (code == 8) {
-            timedelta = (bit<32>) ((hdr.my_metadata.ingress_timestamp - time);
+            timedelta = (bit<32>) (hdr.my_metadata.ingress_timestamp - time);
         } else {
             timedelta = 32w0;
         }
@@ -791,14 +793,8 @@ control MyIngress(inout headers hdr,
 
             standard_metadata.egress_spec = hdr.my_metadata.egress_spec;
 
-            // done flag set -> continue to next hop
-            if (hdr.pdata.done_flg == 1w1) {
-                hdr.pdata.done_flg = 1w0;
-                hdr.pdata.steps = 32w0;
-                hdr.pdata.pc = 32w0;
-            } 
-            // error flag set -> continue to next hop
-            else if (hdr.pdata.err_flg == 1w1) { } 
+            // done || error flag set -> continue to next hop
+            if (hdr.pdata.done_flg == 1w1 || hdr.pdata.err_flg == 1w1) { } 
             // max steps reached -> set error flag
             else if (hdr.pdata.steps > MAX_STEPS) {
                 hdr.pdata.err_flg = 1w1;
@@ -946,19 +942,27 @@ control MyEgress(inout headers hdr,
             
     apply {
         if (hdr.pdata.isValid() && hdr.my_metadata.isValid()) {
-            @atomic {
-                hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
-                hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
-                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
-                hdr.my_metadata.egress_timestamp = standard_metadata.egress_global_timestamp;
-
-                parse_instructions();
-                parse_stack();
-                read_current_instr();
-                instruction_table_egress.apply();
-                deparse_stack();
+            if (hdr.pdata.done_flg == 1w1) {
+                hdr.pdata.done_flg = 1w0;
+                hdr.pdata.steps = 32w0;
+                hdr.pdata.pc = 32w0;
             } 
+            else if (hdr.pdata.err_flg == 1w1) { }
+            else {
+                @atomic {
+                    hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+                    hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
+                    hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+                    hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+                    hdr.my_metadata.egress_timestamp = standard_metadata.egress_global_timestamp;
+
+                    parse_instructions();
+                    parse_stack();
+                    read_current_instr();
+                    instruction_table_egress.apply();
+                    deparse_stack();
+                } 
+            }
         } else {
             add_tx_bytes();
         }
