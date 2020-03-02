@@ -1,7 +1,7 @@
 {
-    "stack-size": 32,
-    "n-instrs": 25,
-    "n-registers": 32,
+    "stack-size": 64,
+    "n-instrs": 32,
+    "n-registers": 64,
     "n-steps": 500,
     "switch-metadata": {
         "ingress_port": 0,

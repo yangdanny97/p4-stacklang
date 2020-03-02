@@ -12,9 +12,9 @@ typedef bit<48> time_t;
 // use an unassigned protocol number
 const bit<8> PROTOCOL_NUM = 0x8F;
 const bit<32> MAX_STEPS = 500;
-const bit<32> STACK_SIZE = 32;
-const bit<32> MAX_INSTRS = 26; //extra for special last instruction
-const bit<32> NUM_REGISTERS = 32;
+const bit<32> STACK_SIZE = 64;
+const bit<32> MAX_INSTRS = 33; //extra for special last instruction
+const bit<32> NUM_REGISTERS = 64;
 const bit<32> MAX_PORTS = 10;
 
 header instr_t {
@@ -45,7 +45,8 @@ header pdata_t {
     bit<32> steps;
     bit<1> done_flg; // flag set when execution ends
     bit<1> err_flg; // flag set if there is an error
-    bit<6> padding;
+    bit<1> egress_flg; //flag set if instruction needs further processing in egress
+    bit<5> padding;
     int<32> result;
     bit<8> curr_instr_opcode;
     int<32> curr_instr_arg;
@@ -203,6 +204,13 @@ control MyIngress(inout headers hdr,
         opcodes.write(22, hdr.instructions[22].opcode);
         opcodes.write(23, hdr.instructions[23].opcode);
         opcodes.write(24, hdr.instructions[24].opcode);
+        opcodes.write(25, hdr.instructions[25].opcode);
+        opcodes.write(26, hdr.instructions[26].opcode);
+        opcodes.write(27, hdr.instructions[27].opcode);
+        opcodes.write(28, hdr.instructions[28].opcode);
+        opcodes.write(29, hdr.instructions[29].opcode);
+        opcodes.write(30, hdr.instructions[30].opcode);
+        opcodes.write(31, hdr.instructions[31].opcode);
 
         args.write(0, hdr.instructions[0].arg);
         args.write(1, hdr.instructions[1].arg);
@@ -229,6 +237,13 @@ control MyIngress(inout headers hdr,
         args.write(22, hdr.instructions[22].arg);
         args.write(23, hdr.instructions[23].arg);
         args.write(24, hdr.instructions[24].arg);
+        args.write(25, hdr.instructions[25].arg);
+        args.write(26, hdr.instructions[26].arg);
+        args.write(27, hdr.instructions[27].arg);
+        args.write(28, hdr.instructions[28].arg);
+        args.write(29, hdr.instructions[29].arg);
+        args.write(30, hdr.instructions[30].arg);
+        args.write(31, hdr.instructions[31].arg);
 
     }
 
@@ -265,6 +280,38 @@ control MyIngress(inout headers hdr,
         stack.write(29, hdr.stack[29].value);
         stack.write(30, hdr.stack[30].value);
         stack.write(31, hdr.stack[31].value);
+        stack.write(32, hdr.stack[32].value);
+        stack.write(33, hdr.stack[33].value);
+        stack.write(34, hdr.stack[34].value);
+        stack.write(35, hdr.stack[35].value);
+        stack.write(36, hdr.stack[36].value);
+        stack.write(37, hdr.stack[37].value);
+        stack.write(38, hdr.stack[38].value);
+        stack.write(39, hdr.stack[39].value);
+        stack.write(40, hdr.stack[40].value);
+        stack.write(41, hdr.stack[41].value);
+        stack.write(42, hdr.stack[42].value);
+        stack.write(43, hdr.stack[43].value);
+        stack.write(44, hdr.stack[44].value);
+        stack.write(45, hdr.stack[45].value);
+        stack.write(46, hdr.stack[46].value);
+        stack.write(47, hdr.stack[47].value);
+        stack.write(48, hdr.stack[48].value);
+        stack.write(49, hdr.stack[49].value);
+        stack.write(50, hdr.stack[50].value);
+        stack.write(51, hdr.stack[51].value);
+        stack.write(52, hdr.stack[52].value);
+        stack.write(53, hdr.stack[53].value);
+        stack.write(54, hdr.stack[54].value);
+        stack.write(55, hdr.stack[55].value);
+        stack.write(56, hdr.stack[56].value);
+        stack.write(57, hdr.stack[57].value);
+        stack.write(58, hdr.stack[58].value);
+        stack.write(59, hdr.stack[59].value);
+        stack.write(60, hdr.stack[60].value);
+        stack.write(61, hdr.stack[61].value);
+        stack.write(62, hdr.stack[62].value);
+        stack.write(63, hdr.stack[63].value);
 
     }
 
@@ -301,6 +348,38 @@ control MyIngress(inout headers hdr,
         stack.read(hdr.stack[29].value, 29);
         stack.read(hdr.stack[30].value, 30);
         stack.read(hdr.stack[31].value, 31);
+        stack.read(hdr.stack[32].value, 32);
+        stack.read(hdr.stack[33].value, 33);
+        stack.read(hdr.stack[34].value, 34);
+        stack.read(hdr.stack[35].value, 35);
+        stack.read(hdr.stack[36].value, 36);
+        stack.read(hdr.stack[37].value, 37);
+        stack.read(hdr.stack[38].value, 38);
+        stack.read(hdr.stack[39].value, 39);
+        stack.read(hdr.stack[40].value, 40);
+        stack.read(hdr.stack[41].value, 41);
+        stack.read(hdr.stack[42].value, 42);
+        stack.read(hdr.stack[43].value, 43);
+        stack.read(hdr.stack[44].value, 44);
+        stack.read(hdr.stack[45].value, 45);
+        stack.read(hdr.stack[46].value, 46);
+        stack.read(hdr.stack[47].value, 47);
+        stack.read(hdr.stack[48].value, 48);
+        stack.read(hdr.stack[49].value, 49);
+        stack.read(hdr.stack[50].value, 50);
+        stack.read(hdr.stack[51].value, 51);
+        stack.read(hdr.stack[52].value, 52);
+        stack.read(hdr.stack[53].value, 53);
+        stack.read(hdr.stack[54].value, 54);
+        stack.read(hdr.stack[55].value, 55);
+        stack.read(hdr.stack[56].value, 56);
+        stack.read(hdr.stack[57].value, 57);
+        stack.read(hdr.stack[58].value, 58);
+        stack.read(hdr.stack[59].value, 59);
+        stack.read(hdr.stack[60].value, 60);
+        stack.read(hdr.stack[61].value, 61);
+        stack.read(hdr.stack[62].value, 62);
+        stack.read(hdr.stack[63].value, 63);
 
     }
 
@@ -708,10 +787,11 @@ control MyIngress(inout headers hdr,
         rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
         last_time.read(time, (bit<32>)standard_metadata.ingress_port);
         // TARGET-SPECIFIC
-        // push a placeholder 0 for egress-fields, don't increment PC until egress
+
+        // don't increment PC until egress
         int<32> code = hdr.pdata.curr_instr_arg;
         if (code == 0) {
-            hdr.pdata.curr_instr_arg = 100;//(int<32>) (bit<32>) hdr.my_metadata.ingress_port;
+            hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.ingress_port;
         } else
         if (code == 1) {
             hdr.pdata.curr_instr_arg = (int<32>) hdr.my_metadata.packet_length;
@@ -731,6 +811,7 @@ control MyIngress(inout headers hdr,
         if (code == 2 || code == 3 || code == 5 || code == 6 || code == 9 || code == 10 || code == 11) {
             hdr.pdata.sp = hdr.pdata.sp - 32w1;
         }
+
         // for code 8, also push time since last probe onto stack
         bit<32> timedelta;
         if (code == 8) {
@@ -749,6 +830,9 @@ control MyIngress(inout headers hdr,
         }
         rx_bytes.write((bit<32>)hdr.my_metadata.ingress_port, byte_cnt);
         last_time.write((bit<32>)hdr.my_metadata.ingress_port, time);
+
+        //finish processing in egress
+        hdr.pdata.egress_flg = 1w1;
     }
 
     action instr_setegress() {
@@ -921,6 +1005,7 @@ control MyIngress(inout headers hdr,
             else {
                 // atomic to prevent races when stack/instrs are temporarily moved to registers
                 @atomic {
+
                     standard_metadata.egress_spec = 9w6;
                     // don't decrement ttl for self-forwarding
                     hdr.ipv4.ttl = hdr.ipv4.ttl + 1;
@@ -978,6 +1063,13 @@ control MyEgress(inout headers hdr,
         opcodes.write(22, hdr.instructions[22].opcode);
         opcodes.write(23, hdr.instructions[23].opcode);
         opcodes.write(24, hdr.instructions[24].opcode);
+        opcodes.write(25, hdr.instructions[25].opcode);
+        opcodes.write(26, hdr.instructions[26].opcode);
+        opcodes.write(27, hdr.instructions[27].opcode);
+        opcodes.write(28, hdr.instructions[28].opcode);
+        opcodes.write(29, hdr.instructions[29].opcode);
+        opcodes.write(30, hdr.instructions[30].opcode);
+        opcodes.write(31, hdr.instructions[31].opcode);
 
         args.write(0, hdr.instructions[0].arg);
         args.write(1, hdr.instructions[1].arg);
@@ -1004,6 +1096,13 @@ control MyEgress(inout headers hdr,
         args.write(22, hdr.instructions[22].arg);
         args.write(23, hdr.instructions[23].arg);
         args.write(24, hdr.instructions[24].arg);
+        args.write(25, hdr.instructions[25].arg);
+        args.write(26, hdr.instructions[26].arg);
+        args.write(27, hdr.instructions[27].arg);
+        args.write(28, hdr.instructions[28].arg);
+        args.write(29, hdr.instructions[29].arg);
+        args.write(30, hdr.instructions[30].arg);
+        args.write(31, hdr.instructions[31].arg);
 
     }
 
@@ -1040,6 +1139,38 @@ control MyEgress(inout headers hdr,
         stack.write(29, hdr.stack[29].value);
         stack.write(30, hdr.stack[30].value);
         stack.write(31, hdr.stack[31].value);
+        stack.write(32, hdr.stack[32].value);
+        stack.write(33, hdr.stack[33].value);
+        stack.write(34, hdr.stack[34].value);
+        stack.write(35, hdr.stack[35].value);
+        stack.write(36, hdr.stack[36].value);
+        stack.write(37, hdr.stack[37].value);
+        stack.write(38, hdr.stack[38].value);
+        stack.write(39, hdr.stack[39].value);
+        stack.write(40, hdr.stack[40].value);
+        stack.write(41, hdr.stack[41].value);
+        stack.write(42, hdr.stack[42].value);
+        stack.write(43, hdr.stack[43].value);
+        stack.write(44, hdr.stack[44].value);
+        stack.write(45, hdr.stack[45].value);
+        stack.write(46, hdr.stack[46].value);
+        stack.write(47, hdr.stack[47].value);
+        stack.write(48, hdr.stack[48].value);
+        stack.write(49, hdr.stack[49].value);
+        stack.write(50, hdr.stack[50].value);
+        stack.write(51, hdr.stack[51].value);
+        stack.write(52, hdr.stack[52].value);
+        stack.write(53, hdr.stack[53].value);
+        stack.write(54, hdr.stack[54].value);
+        stack.write(55, hdr.stack[55].value);
+        stack.write(56, hdr.stack[56].value);
+        stack.write(57, hdr.stack[57].value);
+        stack.write(58, hdr.stack[58].value);
+        stack.write(59, hdr.stack[59].value);
+        stack.write(60, hdr.stack[60].value);
+        stack.write(61, hdr.stack[61].value);
+        stack.write(62, hdr.stack[62].value);
+        stack.write(63, hdr.stack[63].value);
 
     }
 
@@ -1076,6 +1207,38 @@ control MyEgress(inout headers hdr,
         stack.read(hdr.stack[29].value, 29);
         stack.read(hdr.stack[30].value, 30);
         stack.read(hdr.stack[31].value, 31);
+        stack.read(hdr.stack[32].value, 32);
+        stack.read(hdr.stack[33].value, 33);
+        stack.read(hdr.stack[34].value, 34);
+        stack.read(hdr.stack[35].value, 35);
+        stack.read(hdr.stack[36].value, 36);
+        stack.read(hdr.stack[37].value, 37);
+        stack.read(hdr.stack[38].value, 38);
+        stack.read(hdr.stack[39].value, 39);
+        stack.read(hdr.stack[40].value, 40);
+        stack.read(hdr.stack[41].value, 41);
+        stack.read(hdr.stack[42].value, 42);
+        stack.read(hdr.stack[43].value, 43);
+        stack.read(hdr.stack[44].value, 44);
+        stack.read(hdr.stack[45].value, 45);
+        stack.read(hdr.stack[46].value, 46);
+        stack.read(hdr.stack[47].value, 47);
+        stack.read(hdr.stack[48].value, 48);
+        stack.read(hdr.stack[49].value, 49);
+        stack.read(hdr.stack[50].value, 50);
+        stack.read(hdr.stack[51].value, 51);
+        stack.read(hdr.stack[52].value, 52);
+        stack.read(hdr.stack[53].value, 53);
+        stack.read(hdr.stack[54].value, 54);
+        stack.read(hdr.stack[55].value, 55);
+        stack.read(hdr.stack[56].value, 56);
+        stack.read(hdr.stack[57].value, 57);
+        stack.read(hdr.stack[58].value, 58);
+        stack.read(hdr.stack[59].value, 59);
+        stack.read(hdr.stack[60].value, 60);
+        stack.read(hdr.stack[61].value, 61);
+        stack.read(hdr.stack[62].value, 62);
+        stack.read(hdr.stack[63].value, 63);
 
     }
 
@@ -1173,19 +1336,22 @@ control MyEgress(inout headers hdr,
             } 
             else if (hdr.pdata.err_flg == 1w1) { }
             else {
-                @atomic {
-                    hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
-                    hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
-                    hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
-                    hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
-                    hdr.my_metadata.egress_timestamp = standard_metadata.egress_global_timestamp;
+                hdr.my_metadata.enq_timestamp = standard_metadata.enq_timestamp;
+                hdr.my_metadata.deq_timedelta = standard_metadata.deq_timedelta;
+                hdr.my_metadata.enq_qdepth = standard_metadata.enq_qdepth;
+                hdr.my_metadata.deq_qdepth = standard_metadata.deq_qdepth;
+                hdr.my_metadata.egress_timestamp = standard_metadata.egress_global_timestamp;
 
-                    parse_instructions();
-                    parse_stack();
-                    read_current_instr();
-                    instruction_table_egress.apply();
-                    deparse_stack();
-                } 
+                if (hdr.pdata.egress_flg == 1w1) {
+                    @atomic {
+                        parse_instructions();
+                        parse_stack();
+                        read_current_instr();
+                        instruction_table_egress.apply();
+                        deparse_stack();
+                        hdr.pdata.egress_flg = 1w0;
+                    }
+                }
             }
         } else {
             add_tx_bytes();

@@ -58,8 +58,8 @@ i_last = 0x26
 
 PROTOCOL_NUM = 0x8F
 MAX_STEPS = 500
-STACK_SIZE = 32
-MAX_INSTRS = 25
+STACK_SIZE = 64
+MAX_INSTRS = 32
 
 class Metadata(Packet):
     name = 'metadata'
@@ -87,7 +87,8 @@ class Pdata(Packet):
         IntField('steps', 0),
         BitField('done_flg', 0, 1),
         BitField('err_flg', 0, 1),
-        BitField('padding', 0, 6),
+        BitField('egress_flg', 0, 1),
+        BitField('padding', 0, 5),
         IntField('result', 0),
         BitField('curr_instr_opcode', 0, 8),
         IntField('curr_instr_arg', 0),
@@ -150,7 +151,39 @@ class Stack(Packet):
         IntField('idx_28', 0),
         IntField('idx_29', 0),
         IntField('idx_30', 0),
-        IntField('idx_31', 0)
+        IntField('idx_31', 0),
+        IntField('idx_32', 0),
+        IntField('idx_33', 0),
+        IntField('idx_34', 0),
+        IntField('idx_35', 0),
+        IntField('idx_36', 0),
+        IntField('idx_37', 0),
+        IntField('idx_38', 0),
+        IntField('idx_39', 0),
+        IntField('idx_40', 0),
+        IntField('idx_41', 0),
+        IntField('idx_42', 0),
+        IntField('idx_43', 0),
+        IntField('idx_44', 0),
+        IntField('idx_45', 0),
+        IntField('idx_46', 0),
+        IntField('idx_47', 0),
+        IntField('idx_48', 0),
+        IntField('idx_49', 0),
+        IntField('idx_50', 0),
+        IntField('idx_51', 0),
+        IntField('idx_52', 0),
+        IntField('idx_53', 0),
+        IntField('idx_54', 0),
+        IntField('idx_55', 0),
+        IntField('idx_56', 0),
+        IntField('idx_57', 0),
+        IntField('idx_58', 0),
+        IntField('idx_59', 0),
+        IntField('idx_60', 0),
+        IntField('idx_61', 0),
+        IntField('idx_62', 0),
+        IntField('idx_63', 0)
     ]
 
     def answers(self, other):
