@@ -592,8 +592,8 @@ control MyIngress(inout headers hdr,
     action instr_metadata_ingress() {
         int<32> byte_cnt;
         time_t time;
-        rx_bytes.read(byte_cnt, (bit<32>)standard_metadata.ingress_port);
-        last_time.read(time, (bit<32>)standard_metadata.ingress_port);
+        rx_bytes.read(byte_cnt, (bit<32>)hdr.my_metadata.ingress_port);
+        last_time.read(time, (bit<32>)hdr.my_metadata.ingress_port);
         // TARGET-SPECIFIC
 
         // don't increment PC until egress
@@ -649,6 +649,7 @@ control MyIngress(inout headers hdr,
         stack.read(top, hdr.pdata.sp - 32w1);
         idrop();
         standard_metadata.egress_spec = (bit<9>) (bit<32>) top;
+        hdr.my_metadata.egress_spec = (bit<9>) (bit<32>) top;
         hdr.pdata.done_flg = 1w1;
     }
 
@@ -877,8 +878,8 @@ control MyEgress(inout headers hdr,
         int<32> code = hdr.pdata.curr_instr_arg;
         int<32> byte_cnt;
         time_t time;
-        tx_bytes.read(byte_cnt, (bit<32>)standard_metadata.egress_spec);
-        last_time.read(time, (bit<32>)standard_metadata.egress_spec);
+        tx_bytes.read(byte_cnt, (bit<32>)hdr.my_metadata.egress_spec);
+        last_time.read(time, (bit<32>)hdr.my_metadata.egress_spec);
         if (code == 2) {
             hdr.pdata.curr_instr_arg = (int<32>) (bit<32>) hdr.my_metadata.enq_qdepth;
         } else if (code == 3) {
