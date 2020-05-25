@@ -2,11 +2,19 @@
 
 #### Final project for CS 6114 Network PL (FA19) taught by Nate Foster
 
-Active networking is a networking paradigm that allows user-defined computations carried in packets to be executed on the network, allowing for dynamic modification of the network's behavior. Stitch is a domain specific bytecode language that implements a form of active networking. Packets containing Stitch programs can be executed by switches, allowing arbitrary computations and modifications to the network in real-time. This enables a wide variety of measurements, computations, and state changes to be performed without modifying/recompiling the switch. The name Stitch is a combination of the words "stack" and "switch".
+Active networking is a networking paradigm that allows user-defined computations carried in packets to be executed on the network, allowing for dynamic modification of the network's behavior. Stitch is a domain-specific bytecode language that implements a form of active networking. Packets containing Stitch programs can be executed by switches, allowing arbitrary computations and modifications to the network in real-time. This enables a wide variety of measurements, computations, and state changes to be performed without modifying/recompiling the switch. The name Stitch is a combination of the words "stack" and "switch".
 
 <p align="center">
   <img src="https://github.com/yangdanny97/p4-stacklang/blob/master/stitch-logo.png?raw=true" alt="a poorly-drawn Stitch logo"/>
 </p>
+
+## Usage Overview
+
+This is designed to be run with the P4 development VM, on the v1model simulated switch target. The target-dependent parts of this system are not modular, so code (mainly metadata-related) will need to be modified for it to work on different targets.
+
+The key part of Stitch is the config file; this controls what metadata is supported, the size of the stack/register bank, and the expected topology of the network. From this information, Stitch generates the P4 code for the switch, the Python code for the controller, and the topology JSON for mininet. The latter 2 are included for ease-of-setup for the examples, and can be swapped out for more sophisticated controllers/topologies.
+
+Stitch programs can be encoded as JSON, as seen in some of the examples. For a full list of instructions, see `docs/isa.md`. Please note that the report is quite outdated and certain parts of the execution model have moved to the egress pipeline. 
 
 ## Example Programs
 
