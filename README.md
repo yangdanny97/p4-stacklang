@@ -14,7 +14,7 @@ This is designed to be run with the P4 development VM, on the v1model simulated 
 
 The key part of Stitch is the config file; this controls what metadata is supported, the size of the stack/register bank, and the expected topology of the network. From this information, Stitch generates the P4 code for the switch, the Python code for the controller, and the topology JSON for mininet. The topology JSON is basically unchanged but included with the config for convenience. The controller can be modified or replaced, but the replacement controller must set up unique IDs for each switch in the switch_id table.
 
-Stitch programs can be encoded as JSON, as seen in some of the examples. For a full list of instructions, see `docs/isa.md`. Please note that the report is quite outdated and certain parts of the execution model have moved to the egress pipeline. 
+Stitch programs can be encoded as JSON, as seen in some of the examples. For a full list of instructions, see `docs/isa.md`. Please note that the slide deck in `docs` is quite outdated, and certain parts of the execution model have moved to the egress pipeline (see the new `Stitch Overview.pdf` for updated info). 
 
 ## Example Programs
 

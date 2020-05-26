@@ -21,7 +21,7 @@
 |done |set the [done] flag to 1 |
 |error |set the [error] flag to 1 |
 |nop |does nothing |
-|metadata [n] |hardware specific; push the value of some standard metadata field [n] to top of stack; values are extended/truncated to fit. <br> **Implemented metadata fields for v1model:** 0 ingress_port; 1 packet_length; 2 enq_qdepth; 3 deq_qdepth; 4 egresss_spec; 5 enq_timestamp; 6 deq_timedelta; 7 switch_id; 8 rx_util; 9 tx_util; 10 ingress_timestamp; 11 egress_timestamp; 
+|metadata [n] |hardware specific; push the value of some standard metadata field [n] to top of stack; values are extended/truncated to fit. <br> **Implemented metadata fields for v1model:** <br> 0 ingress_port <br>  1 packet_length<br>  2 enq_qdepth<br>  3 deq_qdepth<br>  4 egresss_spec<br>5 enq_timestamp<br> 6 deq_timedelta<br>  7 switch_id<br> 8 rx_util<br>  9 tx_util<br> 10 ingress_timestamp<br> 11 egress_timestamp
 |setegress |pop top of stack and set egress spec to the port corresponding to that value; this ends the current execution of the program, and will emit the packet out of the specified port and reset the PC/steps fields in the program data header. Setting the port to the special drop port will result in the packet being dropped; the value of this port is hardware-dependent
 |setresult |pop the top of stack and puts the value in the result field of the program data |
 |varload/varloadreg |variant of load/loadreg which pops the top of the stack and uses that value as the offset/register number to read; this effectively replaces the top value on the stack, and the size of the stack should not change. `push 1; varload` is equivalent to `load 1` |
